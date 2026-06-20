@@ -781,13 +781,13 @@
 }
 
 
-/* V7 PWA */
+/* V7.0 Real - PWA e Backup */
 #installPwaBtn{display:none}
 .pwaBadge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;background:#ecfdf5;color:#166534;padding:4px 8px;font-size:12px;font-weight:700}
 .offlineBadge{background:#fff7ed;color:#9a3412}
-
+.backupActions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.appInfo{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:13px;color:var(--muted)}
 </style>
-
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#001f8f">
 <meta name="mobile-web-app-capable" content="yes">
@@ -795,11 +795,10 @@
 <meta name="apple-mobile-web-app-title" content="Relatórios Manutenção">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-
 </head>
 <body>
-<header><h1>Gerador de Relatórios de Manutenção — V5</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
-<div id="loginScreen" class="login card"><h2>Entrar</h2><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
+<header><h1>Relatórios de Manutenção — V7 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
+<div id="loginScreen" class="login card"><h2>Entrar</h2><p class="small">Informe seu usuário e senha para acessar o sistema.</p><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
 <div id="app" class="container hidden">
 <div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
 <section id="tab-dashboard" class="tab card"><h2>Dashboard</h2><div class="kpiGrid"><div class="kpi"><div id="kpiMes" class="num">0</div><div class="txt">Relatórios do mês</div></div><div class="kpi"><div id="kpiPend" class="num">0</div><div class="txt">Aguardando aprovação</div></div><div class="kpi"><div id="kpiOk" class="num">0</div><div class="txt">Aprovados</div></div><div class="kpi"><div id="kpiEqp" class="num">0</div><div class="txt">Equipamentos</div></div></div></section>
@@ -808,7 +807,14 @@
 <section id="tab-equipamentos" class="tab card hidden"><h2>Equipamentos</h2><div class="grid3"><div><label>TAG</label><input id="eqTag"></div><div><label>Nome do equipamento</label><input id="eqNome"></div><div><label>Área / Sistema</label><input id="eqArea"></div><div><label>Fabricante</label><input id="eqFabricante"></div><div><label>Modelo</label><input id="eqModelo"></div><div><label>Nº de série</label><input id="eqSerie"></div></div><br><button onclick="addEquipment()">Cadastrar equipamento</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>TAG</th><th>Equipamento</th><th>Área</th><th>Fabricante</th><th>Modelo</th><th>QR Code</th><th></th></tr></thead><tbody id="equipBody"></tbody></table></div></section>
 <section id="tab-aprovacoes" class="tab card hidden"><h2>Aprovações Pendentes</h2><div id="approvalList"></div></section>
 <section id="tab-usuarios" class="tab card hidden"><h2>Usuários</h2><div class="grid3"><div><label>Login</label><input id="uLogin"></div><div><label>Senha</label><input id="uSenha" type="password"></div><div><label>Nível</label><select id="uNivel"><option>Executante</option><option>Gestor</option><option>Administrador</option></select></div><div><label>Nome</label><input id="uNome"></div><div><label>Matrícula</label><input id="uMatricula"></div><div><label>Cargo</label><input id="uCargo"></div><div><label>E-mail</label><input id="uEmail"></div></div><br><button onclick="addUser()">Adicionar usuário</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Login</th><th>Nome</th><th>Matrícula</th><th>Cargo</th><th>Nível</th><th>Ações</th></tr></thead><tbody id="usersBody"></tbody></table></div></section>
-<section id="tab-config" class="tab card hidden"><h2>Configurações</h2><div class="grid"><div><label>Nome da empresa</label><input id="empNome"></div><div><label>Setor / Oficina</label><input id="empSetor"></div><div><label>Endereço / Unidade</label><input id="empEndereco" placeholder="Opcional"></div><div><label>E-mail do gestor</label><input id="empEmail"></div><div><label>Responsável técnico / gestor</label><input id="empGestor"></div><div><label>Cargo / matrícula do gestor</label><input id="empGestorCargo"></div><div><label>Logo</label><input id="empLogoFile" type="file" accept="image/*" onchange="loadLogo(event)"><br><img id="empLogoPreview" class="logoPreview"></div></div><br><button onclick="saveCompany()">Salvar empresa</button><hr><h3>Módulos configuráveis</h3><div class="grid3" id="modulesArea"></div><br><button onclick="saveModules()">Salvar módulos</button><hr><h3>Campos obrigatórios padrão</h3><div id="requiredFieldsArea" class="grid3"></div><br><button onclick="saveRequiredFields()">Salvar obrigatórios</button><hr><h3>Campos personalizados</h3><div class="grid3"><div><label>Nome do campo</label><input id="cfNome" placeholder="Ex.: Materiais utilizados"></div><div><label>Tipo</label><select id="cfTipo"><option value="textarea">Texto longo</option><option value="text">Texto curto</option><option value="date">Data</option><option value="number">Número</option></select></div><div><label>Obrigatório?</label><select id="cfObrigatorio"><option value="nao">Não</option><option value="sim">Sim</option></select></div></div><br><button onclick="addCustomField()">Adicionar campo</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Campo</th><th>Tipo</th><th>Obrigatório</th><th></th></tr></thead><tbody id="customFieldsBody"></tbody></table></div></section>
+<section id="tab-config" class="tab card hidden"><h2>Configurações</h2><div class="grid"><div><label>Nome da empresa</label><input id="empNome"></div><div><label>Setor / Oficina</label><input id="empSetor"></div><div><label>Endereço / Unidade</label><input id="empEndereco" placeholder="Opcional"></div><div><label>E-mail do gestor</label><input id="empEmail"></div><div><label>Responsável técnico / gestor</label><input id="empGestor"></div><div><label>Cargo / matrícula do gestor</label><input id="empGestorCargo"></div><div><label>Logo</label><input id="empLogoFile" type="file" accept="image/*" onchange="loadLogo(event)"><br><img id="empLogoPreview" class="logoPreview"></div></div><br><button onclick="saveCompany()">Salvar empresa</button><hr><h3>Módulos configuráveis</h3><div class="grid3" id="modulesArea"></div><br><button onclick="saveModules()">Salvar módulos</button><hr><h3>Campos obrigatórios padrão</h3><div id="requiredFieldsArea" class="grid3"></div><br><button onclick="saveRequiredFields()">Salvar obrigatórios</button><hr><h3>Campos personalizados</h3><div class="grid3"><div><label>Nome do campo</label><input id="cfNome" placeholder="Ex.: Materiais utilizados"></div><div><label>Tipo</label><select id="cfTipo"><option value="textarea">Texto longo</option><option value="text">Texto curto</option><option value="date">Data</option><option value="number">Número</option></select></div><div><label>Obrigatório?</label><select id="cfObrigatorio"><option value="nao">Não</option><option value="sim">Sim</option></select></div></div><br><button onclick="addCustomField()">Adicionar campo</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Campo</th><th>Tipo</th><th>Obrigatório</th><th></th></tr></thead><tbody id="customFieldsBody"></tbody></table></div><hr><h3>Backup do aplicativo</h3>
+<p class="small">Use estas opções para salvar uma cópia dos relatórios, usuários, equipamentos e configurações deste aparelho.</p>
+<div class="backupActions">
+<button class="light" onclick="exportBackup()">Exportar backup</button>
+<label class="light" style="display:inline-flex;align-items:center;cursor:pointer;padding:10px 13px;border-radius:8px;font-weight:700">Importar backup
+<input type="file" accept="application/json" onchange="importBackup(event)" style="display:none"></label>
+</div>
+<div class="appInfo"><b>Versão:</b> 7.0 PWA<br><b>Banco:</b> Local neste aparelho<br><b>Modo:</b> Instalável / offline básico</div></section>
 <section id="printArea" class="card hidden"></section></div>
 <div id="signatureModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><b id="sigTitle">Assinatura</b><button class="light" onclick="closeSignatureModal()">Fechar</button></div><div class="modalBody"><canvas id="signatureCanvas"></canvas></div><div class="modalFoot"><button class="danger" onclick="clearModalSignature()">Limpar</button><button class="ok" onclick="saveModalSignature()">Salvar assinatura</button></div></div></div>
 <script>
@@ -1331,13 +1337,13 @@ body{background:#fff;margin:0}
 }
 
 
-/* V7 PWA */
+/* V7.0 Real - PWA e Backup */
 #installPwaBtn{display:none}
 .pwaBadge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;background:#ecfdf5;color:#166534;padding:4px 8px;font-size:12px;font-weight:700}
 .offlineBadge{background:#fff7ed;color:#9a3412}
-
+.backupActions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.appInfo{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:13px;color:var(--muted)}
 </style>
-
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#001f8f">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1345,7 +1351,6 @@ body{background:#fff;margin:0}
 <meta name="apple-mobile-web-app-title" content="Relatórios Manutenção">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-
 </head>
 <body>
 <div class="pdfViewerActions">
@@ -1375,42 +1380,13 @@ function preparePrint(r){
 }function sendEmail(){const r=collectReport($('status').value),c=get('company',{});location.href=`mailto:${c.email||''}?subject=${encodeURIComponent('Relatório de Manutenção '+r.numero)}&body=${encodeURIComponent('Segue relatório de manutenção '+r.numero+'.\n\nEquipamento: '+r.tag+' - '+r.equipamento+'\nStatus: '+r.status+'\n\nSalve o PDF como: Relatório '+r.numero+'.pdf')}`}function shareWhatsApp(){const r=collectReport($('status').value);openWhatsApp(r)}function shareReportWhatsApp(id){const r=get('reports',[]).find(x=>x.id===id);if(r)openWhatsApp(r)}function openWhatsApp(r){const msg=`Relatório de Manutenção ${r.numero}%0AEquipamento: ${encodeURIComponent(r.tag+' - '+r.equipamento)}%0AStatus: ${encodeURIComponent(r.status)}%0A%0AObs.: gere/anexe o PDF "Relatório ${r.numero}.pdf".`;window.open('https://wa.me/?text='+msg,'_blank')}
 
 let deferredPwaPrompt=null;
-window.addEventListener('beforeinstallprompt',(e)=>{
- e.preventDefault();
- deferredPwaPrompt=e;
- const b=document.getElementById('installPwaBtn');
- if(b)b.style.display='inline-block';
-});
-async function installPWA(){
- if(!deferredPwaPrompt){
-   alert('Se o botão de instalação não abrir, use o menu do navegador e escolha "Adicionar à tela inicial" ou "Instalar app".');
-   return;
- }
- deferredPwaPrompt.prompt();
- await deferredPwaPrompt.userChoice;
- deferredPwaPrompt=null;
- const b=document.getElementById('installPwaBtn');
- if(b)b.style.display='none';
-}
-function updatePwaStatus(){
- const el=document.getElementById('pwaStatus');
- if(!el)return;
- if(navigator.onLine){
-   el.textContent='Online';
-   el.classList.remove('offlineBadge');
- }else{
-   el.textContent='Offline';
-   el.classList.add('offlineBadge');
- }
-}
-window.addEventListener('online',updatePwaStatus);
-window.addEventListener('offline',updatePwaStatus);
-if('serviceWorker' in navigator){
- window.addEventListener('load',()=>{
-   navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
-   updatePwaStatus();
- });
-}
+window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPwaPrompt=e;const b=document.getElementById('installPwaBtn');if(b)b.style.display='inline-block';});
+async function installPWA(){if(!deferredPwaPrompt){alert('Se o botão de instalação não abrir, use o menu do navegador e escolha "Adicionar à tela inicial" ou "Instalar app".');return}deferredPwaPrompt.prompt();await deferredPwaPrompt.userChoice;deferredPwaPrompt=null;const b=document.getElementById('installPwaBtn');if(b)b.style.display='none'}
+function updatePwaStatus(){const el=document.getElementById('pwaStatus');if(!el)return;if(navigator.onLine){el.textContent='Online';el.classList.remove('offlineBadge')}else{el.textContent='Offline';el.classList.add('offlineBadge')}}
+window.addEventListener('online',updatePwaStatus);window.addEventListener('offline',updatePwaStatus);
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{});updatePwaStatus();});}
+function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','equipments','reports'];const data={versao:'7.0 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function importBackup(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data.dados){alert('Arquivo de backup inválido.');return}if(!confirm('Importar este backup? Os dados atuais deste aparelho serão substituídos.'))return;Object.keys(data.dados).forEach(k=>set(k,data.dados[k]));alert('Backup importado com sucesso. O aplicativo será recarregado.');location.reload()}catch(err){alert('Erro ao importar backup: '+err.message)}};reader.readAsText(f);e.target.value=''}
 
 init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}
 </script>

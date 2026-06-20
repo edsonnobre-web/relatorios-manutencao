@@ -1,7 +1,7 @@
 {
   "name": "Relatórios de Manutenção",
   "short_name": "Relatórios",
-  "description": "Aplicativo PWA para relatórios de manutenção com fotos, assinaturas e PDF.",
+  "description": "Aplicativo PWA para relatórios de manutenção com fotos, assinaturas, aprovações e PDF.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
