@@ -1,7 +1,7 @@
 {
-  "name": "Relatórios de Manutenção",
+  "name": "Relatórios de Manutenção V7.1",
   "short_name": "Relatórios",
-  "description": "Aplicativo PWA para relatórios de manutenção com fotos, assinaturas, aprovações e PDF.",
+  "description": "Relatórios com identificação por TAG, série, SAP ou descrição manual.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
