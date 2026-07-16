@@ -1,7 +1,7 @@
 {
-  "name": "Relatórios de Manutenção V7.1",
+  "name": "Relatórios de Manutenção V7.2",
   "short_name": "Relatórios",
-  "description": "Relatórios com identificação por TAG, série, SAP ou descrição manual.",
+  "description": "Relatórios configuráveis com aprovação, assinaturas, prefixos e identificação inteligente.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

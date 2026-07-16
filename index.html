@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatórios de Manutenção - V7.1 PWA</title>
+<title>Relatórios de Manutenção - V7.2 PWA</title>
 <style>
 :root{--azul:#001f8f;--bg:#f2f5f9;--card:#fff;--text:#172033;--muted:#657085;--border:#d6dce8;--ok:#15803d;--warn:#b45309;--danger:#b91c1c;--soft:#eef3ff}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}header{height:58px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:sticky;top:0;z-index:20}header h1{margin:0;font-size:17px;color:var(--azul)}button{border:0;background:var(--azul);color:#fff;border-radius:8px;padding:10px 13px;font-weight:700;cursor:pointer}button.secondary{background:#374151}button.light{background:#e5e7eb;color:#111827}button.danger{background:var(--danger)}button.ok{background:var(--ok)}button.warn{background:var(--warn)}button.smallBtn{padding:6px 9px;font-size:12px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}textarea{min-height:85px;resize:vertical}label{font-size:13px;font-weight:700;display:block;margin:0 0 4px}.container{max-width:1180px;margin:auto;padding:14px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(20,30,55,.04)}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.hidden{display:none!important}.small{font-size:12px;color:var(--muted)}.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:var(--soft);color:#1e3a8a;padding:4px 9px;font-size:12px;font-weight:700}.status{font-weight:700;border-radius:999px;padding:4px 8px;font-size:12px;display:inline-block}.st-draft{background:#e5e7eb;color:#111827}.st-wait{background:#fef3c7;color:#92400e}.st-ok{background:#dcfce7;color:#166534}.st-bad{background:#fee2e2;color:#991b1b}.st-corr{background:#ffedd5;color:#9a3412}.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}.table th,.table td{border:1px solid var(--border);padding:8px;text-align:left;vertical-align:middle}.table th{background:#f8fafc}
 #executorsBody td{padding:4px 6px}
@@ -794,6 +794,16 @@
 .equipIdConfig input{width:auto}
 .manualHint{padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#475569;font-size:12px;margin-top:6px}
 @media(max-width:780px){.equipIdConfig{grid-template-columns:1fr}}
+
+/* V7.2 - fluxo configurável, prefixos e aprovador */
+.workflowConfig{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:9px}
+.workflowConfig label.configCheck{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:10px;background:#fafafa}
+.workflowConfig label.configCheck input{width:auto}
+.configPanel{border:1px solid var(--border);border-radius:12px;padding:12px;background:#f8fafc;margin-top:10px}
+#wrapAprovador.hidden,#wrapPrioridade.hidden,#wrapPrefixo.hidden{display:none!important}
+.st-done{background:#dbeafe;color:#1e3a8a}
+.seal-done{background:#dbeafe;color:#1e3a8a}
+@media(max-width:780px){.workflowConfig{grid-template-columns:1fr}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#001f8f">
@@ -804,17 +814,38 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
-<header><h1>Relatórios de Manutenção — V7.1 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
+<header><h1>Relatórios de Manutenção — V7.2 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
 <div id="loginScreen" class="login card"><h2>Entrar</h2><p class="small">Informe seu usuário e senha para acessar o sistema.</p><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
 <div id="app" class="container hidden">
 <div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
 <section id="tab-dashboard" class="tab card"><h2>Dashboard</h2><div class="kpiGrid"><div class="kpi"><div id="kpiMes" class="num">0</div><div class="txt">Relatórios do mês</div></div><div class="kpi"><div id="kpiPend" class="num">0</div><div class="txt">Aguardando aprovação</div></div><div class="kpi"><div id="kpiOk" class="num">0</div><div class="txt">Aprovados</div></div><div class="kpi"><div id="kpiEqp" class="num">0</div><div class="txt">Equipamentos</div></div></div></section>
-<section id="tab-relatorio" class="tab card hidden"><h2>Novo Relatório <span id="executorBadge" class="badge"></span></h2><div id="correctionNotice" class="correctionNotice hidden"></div><div class="grid4"><div><label>Nº do relatório</label><input id="numero" readonly></div><div><label>Data início</label><input id="dataRelatorio" type="date"></div><div><label>Data fim</label><input id="dataFim" type="date"></div><div><label>Tipo de intervenção</label><select id="tipo" onchange="renderTypeFields()"><option>Preventiva</option><option>Corretiva</option><option>Preditiva</option><option>Inspeção</option><option>Teste</option><option>Emergencial</option></select></div><div><label>Prioridade</label><select id="prioridade"><option>Baixa</option><option>Média</option><option>Alta</option><option>Crítica</option></select></div></div><h3>Equipamento</h3><div class="grid3"><div><label>Buscar equipamento</label><input id="equipSearch" list="equipList" placeholder="Digite TAG, número de série, código SAP ou descrição" oninput="suggestEquipmentSearch()" onchange="fillEquipmentFromSearch()"><datalist id="equipList"></datalist><div id="equipSearchHint" class="manualHint">Se não encontrar, continue preenchendo os dados manualmente.</div></div><div><label>Status</label><select id="status" disabled><option>Em elaboração</option><option>Aguardando aprovação</option><option>Correção solicitada</option><option>Aprovado</option><option>Reprovado</option></select></div></div><div class="grid3"><div id="wrapTag"><label>TAG</label><input id="tag"></div><div><label>Equipamento</label><input id="equipamento"></div><div><label>Área / Sistema</label><input id="area"></div><div><label>Fabricante</label><input id="fabricante"></div><div><label>Modelo</label><input id="modelo"></div><div id="wrapSerie"><label>Nº de série</label><input id="serie"></div><div id="wrapSap"><label>Código SAP</label><input id="codigoSap" oninput="fillDescriptionBySap()"></div><div id="wrapDescricao"><label>Descrição do equipamento</label><textarea id="descricaoEquip" placeholder="Preenchida automaticamente pelo SAP ou digitada manualmente"></textarea></div><div><label>OM / OS</label><input id="om"></div></div><h3>Executantes</h3><p class="small">Adicione os participantes. A assinatura fica na própria linha e abre em tela cheia.</p><button class="light" onclick="addExecutorRow()">➕ Adicionar executante</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Participante</th><th>Matrícula</th><th>Cargo</th><th>Assinatura</th><th></th></tr></thead><tbody id="executorsBody"></tbody></table></div><h3>Informações técnicas</h3><div id="typeFieldsArea"></div><label>Problemas identificados</label><textarea id="problemas"></textarea><label>Possíveis causas</label><textarea id="causas"></textarea><label>Ações executadas</label><textarea id="acoes"></textarea><label>Observações finais</label><textarea id="obs"></textarea><div id="customFieldsArea"></div><h3>Fotos com comentários</h3><input id="photoInput" type="file" accept="image/*" multiple onchange="addPhotos(event)"><div id="photoList" class="photo-grid"></div><br><div class="topActions"><button onclick="saveDraft()">Salvar rascunho</button><button class="warn" onclick="submitForApproval()">Enviar para aprovação</button><button class="secondary" onclick="generatePDF()">Gerar PDF / Imprimir</button><button class="light" onclick="sendEmail()">E-mail</button><button class="light" onclick="shareWhatsApp()">WhatsApp</button></div></section>
+<section id="tab-relatorio" class="tab card hidden"><h2>Novo Relatório <span id="executorBadge" class="badge"></span></h2><div id="correctionNotice" class="correctionNotice hidden"></div><div class="grid4"><div><label>Nº do relatório</label><input id="numero" readonly></div><div id="wrapPrefixo"><label>Prefixo / equipe</label><select id="reportPrefix" onchange="newReportNumber()"></select></div><div><label>Data início</label><input id="dataRelatorio" type="date"></div><div><label>Data fim</label><input id="dataFim" type="date"></div><div><label>Tipo de intervenção</label><select id="tipo" onchange="renderTypeFields()"><option>Preventiva</option><option>Corretiva</option><option>Preditiva</option><option>Inspeção</option><option>Teste</option><option>Emergencial</option></select></div><div id="wrapPrioridade"><label>Prioridade</label><select id="prioridade"><option>Baixa</option><option>Média</option><option>Alta</option><option>Crítica</option></select></div></div><h3>Equipamento</h3><div class="grid3"><div><label>Buscar equipamento</label><input id="equipSearch" list="equipList" placeholder="Digite TAG, número de série, código SAP ou descrição" oninput="suggestEquipmentSearch()" onchange="fillEquipmentFromSearch()"><datalist id="equipList"></datalist><div id="equipSearchHint" class="manualHint">Se não encontrar, continue preenchendo os dados manualmente.</div></div><div><label>Status</label><select id="status" disabled><option>Em elaboração</option><option>Aguardando aprovação</option><option>Correção solicitada</option><option>Aprovado</option><option>Reprovado</option><option>Concluído</option></select></div><div id="wrapAprovador"><label>Aprovador</label><select id="aprovador"></select></div></div><div class="grid3"><div id="wrapTag"><label>TAG</label><input id="tag"></div><div><label>Equipamento</label><input id="equipamento"></div><div><label>Área / Sistema</label><input id="area"></div><div><label>Fabricante</label><input id="fabricante"></div><div><label>Modelo</label><input id="modelo"></div><div id="wrapSerie"><label>Nº de série</label><input id="serie"></div><div id="wrapSap"><label>Código SAP</label><input id="codigoSap" oninput="fillDescriptionBySap()"></div><div id="wrapDescricao"><label>Descrição do equipamento</label><textarea id="descricaoEquip" placeholder="Preenchida automaticamente pelo SAP ou digitada manualmente"></textarea></div><div><label>OM / OS</label><input id="om"></div></div><h3>Executantes</h3><p class="small">Adicione os participantes. A assinatura fica na própria linha e abre em tela cheia.</p><button class="light" onclick="addExecutorRow()">➕ Adicionar executante</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Participante</th><th>Matrícula</th><th>Cargo</th><th>Assinatura</th><th></th></tr></thead><tbody id="executorsBody"></tbody></table></div><h3>Informações técnicas</h3><div id="typeFieldsArea"></div><label>Problemas identificados</label><textarea id="problemas"></textarea><label>Possíveis causas</label><textarea id="causas"></textarea><label>Ações executadas</label><textarea id="acoes"></textarea><label>Observações finais</label><textarea id="obs"></textarea><div id="customFieldsArea"></div><h3>Fotos com comentários</h3><input id="photoInput" type="file" accept="image/*" multiple onchange="addPhotos(event)"><div id="photoList" class="photo-grid"></div><br><div class="topActions"><button onclick="saveDraft()">Salvar rascunho</button><button id="submitApprovalBtn" class="warn" onclick="submitForApproval()">Enviar para aprovação</button><button class="secondary" onclick="generatePDF()">Gerar PDF / Imprimir</button><button class="light" onclick="sendEmail()">E-mail</button><button class="light" onclick="shareWhatsApp()">WhatsApp</button></div></section>
 <section id="tab-historico" class="tab card hidden"><h2>Histórico</h2><div class="statusQuickFilters"><button class="light" onclick="setHistoryStatusFilter('')">Todos</button><button class="light" onclick="setHistoryStatusFilter('Em elaboração')">Em elaboração</button><button class="light" onclick="setHistoryStatusFilter('Aguardando aprovação')">Aguardando aprovação</button><button class="light" onclick="setHistoryStatusFilter('Correção solicitada')">Correção solicitada</button><button class="light" onclick="setHistoryStatusFilter('Aprovado')">Aprovado</button><button class="light" onclick="setHistoryStatusFilter('Reprovado')">Reprovado</button></div><div class="grid3"><div><label>Pesquisar</label><input id="searchTerm" placeholder="Nº, TAG, equipamento, executante..." oninput="renderHistory()"></div><div><label>Status</label><select id="filterStatus" onchange="renderHistory()"><option value="">Todos</option><option>Em elaboração</option><option>Aguardando aprovação</option><option>Correção solicitada</option><option>Aprovado</option><option>Reprovado</option></select></div><div><label>Tipo</label><select id="filterType" onchange="renderHistory()"><option value="">Todos</option><option>Preventiva</option><option>Corretiva</option><option>Preditiva</option><option>Inspeção</option><option>Teste</option><option>Emergencial</option></select></div></div><br><div class="tableWrap"><table class="table"><thead><tr><th>Nº</th><th>Data</th><th>TAG</th><th>Equipamento</th><th>Executantes</th><th>Status</th><th>Ações</th></tr></thead><tbody id="historyBody"></tbody></table></div></section>
 <section id="tab-equipamentos" class="tab card hidden"><h2>Equipamentos</h2><div class="grid3"><div id="wrapEqTag"><label>TAG</label><input id="eqTag"></div><div><label>Nome do equipamento</label><input id="eqNome"></div><div><label>Área / Sistema</label><input id="eqArea"></div><div><label>Fabricante</label><input id="eqFabricante"></div><div><label>Modelo</label><input id="eqModelo"></div><div id="wrapEqSerie"><label>Nº de série</label><input id="eqSerie"></div><div id="wrapEqSap"><label>Código SAP</label><input id="eqSap"></div><div id="wrapEqDescricao"><label>Descrição completa</label><textarea id="eqDescricao"></textarea></div></div><br><button onclick="addEquipment()">Cadastrar equipamento</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>TAG</th><th>Nº série</th><th>Cód. SAP</th><th>Equipamento</th><th>Descrição</th><th>Área</th><th>QR Code</th><th></th></tr></thead><tbody id="equipBody"></tbody></table></div></section>
 <section id="tab-aprovacoes" class="tab card hidden"><h2>Aprovações Pendentes</h2><div id="approvalList"></div></section>
 <section id="tab-usuarios" class="tab card hidden"><h2>Usuários</h2><div class="grid3"><div><label>Login</label><input id="uLogin"></div><div><label>Senha</label><input id="uSenha" type="password"></div><div><label>Nível</label><select id="uNivel"><option>Executante</option><option>Gestor</option><option>Administrador</option></select></div><div><label>Nome</label><input id="uNome"></div><div><label>Matrícula</label><input id="uMatricula"></div><div><label>Cargo</label><input id="uCargo"></div><div><label>E-mail</label><input id="uEmail"></div></div><br><button onclick="addUser()">Adicionar usuário</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Login</th><th>Nome</th><th>Matrícula</th><th>Cargo</th><th>Nível</th><th>Ações</th></tr></thead><tbody id="usersBody"></tbody></table></div></section>
 <section id="tab-config" class="tab card hidden"><h2>Configurações</h2><div class="grid"><div><label>Nome da empresa</label><input id="empNome"></div><div><label>Setor / Oficina</label><input id="empSetor"></div><div><label>Endereço / Unidade</label><input id="empEndereco" placeholder="Opcional"></div><div><label>E-mail do gestor</label><input id="empEmail"></div><div><label>Responsável técnico / gestor</label><input id="empGestor"></div><div><label>Cargo / matrícula do gestor</label><input id="empGestorCargo"></div><div><label>Logo</label><input id="empLogoFile" type="file" accept="image/*" onchange="loadLogo(event)"><br><img id="empLogoPreview" class="logoPreview"></div></div><br><button onclick="saveCompany()">Salvar empresa</button><hr><h3>Módulos configuráveis</h3><div class="grid3" id="modulesArea"></div><br><button onclick="saveModules()">Salvar módulos</button><hr><h3>Campos obrigatórios padrão</h3><div id="requiredFieldsArea" class="grid3"></div><br><button onclick="saveRequiredFields()">Salvar obrigatórios</button><hr><h3>Campos personalizados</h3><div class="grid3"><div><label>Nome do campo</label><input id="cfNome" placeholder="Ex.: Materiais utilizados"></div><div><label>Tipo</label><select id="cfTipo"><option value="textarea">Texto longo</option><option value="text">Texto curto</option><option value="date">Data</option><option value="number">Número</option></select></div><div><label>Obrigatório?</label><select id="cfObrigatorio"><option value="nao">Não</option><option value="sim">Sim</option></select></div></div><br><button onclick="addCustomField()">Adicionar campo</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Campo</th><th>Tipo</th><th>Obrigatório</th><th></th></tr></thead><tbody id="customFieldsBody"></tbody></table></div>
+
+<hr><h3>Configuração do relatório</h3>
+<p class="small">Defina o comportamento do relatório conforme a realidade da empresa ou equipe.</p>
+<div class="workflowConfig">
+  <label class="configCheck"><input type="checkbox" id="cfgApprovalEnabled"> Usar aprovação eletrônica</label>
+  <label class="configCheck"><input type="checkbox" id="cfgSignatureRequired"> Assinatura obrigatória</label>
+  <label class="configCheck"><input type="checkbox" id="cfgPriorityEnabled"> Mostrar campo prioridade</label>
+</div>
+<div class="configPanel">
+  <label>Prefixos disponíveis para a numeração</label>
+  <input id="cfgPrefixes" placeholder="Ex.: RM, ELE, MEC, INS">
+  <p class="small">Separe por vírgula. Cada prefixo terá sua própria sequência mensal.</p>
+  <label>Marca d'água do PDF</label>
+  <select id="cfgWatermarkMode">
+    <option value="auto">Automática: status com aprovação / Área-Sistema sem aprovação</option>
+    <option value="status">Status do relatório</option>
+    <option value="area">Área / Sistema</option>
+    <option value="none">Sem marca d'água</option>
+  </select>
+</div>
+<br><button onclick="saveWorkflowConfig()">Salvar configuração do relatório</button>
 <hr><h3>Identificação de equipamentos</h3>
 <p class="small">Defina quais formas de identificação serão usadas no relatório.</p>
 <div class="equipIdConfig">
@@ -838,13 +869,84 @@
 let currentEditingId=null;
 const $=id=>document.getElementById(id);let currentUser=null,photos=[],executors=[],activeSigIndex=null,modalDrawing=false;function get(k,d){return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}function set(k,v){localStorage.setItem(k,JSON.stringify(v))}function safe(v){return String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function uid(){return'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}function todayISO(){return new Date().toISOString().slice(0,10)}function brDate(d){if(!d)return'';let p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d}
 function statusKey(s){
- return {'Em elaboração':'draft','Aguardando aprovação':'wait','Correção solicitada':'corr','Aprovado':'ok','Reprovado':'bad'}[s]||'draft';
+ return {'Em elaboração':'draft','Aguardando aprovação':'wait','Correção solicitada':'corr','Aprovado':'ok','Reprovado':'bad','Concluído':'done'}[s]||'draft';
 }
 function emitidoEm(){
  return new Date().toLocaleString('pt-BR');
 }
 
-function statusClass(s){return{'Em elaboração':'st-draft','Aguardando aprovação':'st-wait','Aprovado':'st-ok','Reprovado':'st-bad','Correção solicitada':'st-corr'}[s]||'st-draft'}function statusBadge(s){return`<span class="status ${statusClass(s)}">${safe(s)}</span>`}
+function statusClass(s){return{'Em elaboração':'st-draft','Aguardando aprovação':'st-wait','Aprovado':'st-ok','Reprovado':'st-bad','Correção solicitada':'st-corr','Concluído':'st-done'}[s]||'st-draft'}function statusBadge(s){return`<span class="status ${statusClass(s)}">${safe(s)}</span>`}
+
+
+const workflowDefaults={
+ approvalEnabled:true,
+ signatureRequired:true,
+ priorityEnabled:true,
+ prefixes:['RM'],
+ watermarkMode:'auto'
+};
+function getWorkflowConfig(){
+ const saved=get('workflowConfig',workflowDefaults);
+ const prefixes=Array.isArray(saved.prefixes)?saved.prefixes:['RM'];
+ return {...workflowDefaults,...saved,prefixes:prefixes.length?prefixes:['RM']};
+}
+function normalizePrefix(v){
+ return String(v||'RM').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)||'RM';
+}
+function loadWorkflowConfig(){
+ const c=getWorkflowConfig();
+ if($('cfgApprovalEnabled'))$('cfgApprovalEnabled').checked=!!c.approvalEnabled;
+ if($('cfgSignatureRequired'))$('cfgSignatureRequired').checked=!!c.signatureRequired;
+ if($('cfgPriorityEnabled'))$('cfgPriorityEnabled').checked=!!c.priorityEnabled;
+ if($('cfgPrefixes'))$('cfgPrefixes').value=c.prefixes.join(', ');
+ if($('cfgWatermarkMode'))$('cfgWatermarkMode').value=c.watermarkMode||'auto';
+ renderPrefixOptions();
+ renderApproverOptions();
+ applyWorkflowConfig();
+}
+function saveWorkflowConfig(){
+ const prefixes=[...new Set(($('cfgPrefixes').value||'RM').split(',').map(normalizePrefix).filter(Boolean))];
+ if(!prefixes.length){alert('Informe pelo menos um prefixo.');return}
+ const c={
+  approvalEnabled:$('cfgApprovalEnabled').checked,
+  signatureRequired:$('cfgSignatureRequired').checked,
+  priorityEnabled:$('cfgPriorityEnabled').checked,
+  prefixes,
+  watermarkMode:$('cfgWatermarkMode').value||'auto'
+ };
+ set('workflowConfig',c);
+ renderPrefixOptions();
+ renderApproverOptions();
+ applyWorkflowConfig();
+ newReportNumber();
+ alert('Configuração do relatório salva.');
+}
+function renderPrefixOptions(selected){
+ const c=getWorkflowConfig(),el=$('reportPrefix');
+ if(!el)return;
+ const current=selected||el.value||c.prefixes[0];
+ el.innerHTML=c.prefixes.map(p=>`<option value="${safe(p)}">${safe(p)}</option>`).join('');
+ el.value=c.prefixes.includes(current)?current:c.prefixes[0];
+}
+function renderApproverOptions(selected){
+ const el=$('aprovador');if(!el)return;
+ const users=get('users',[]).filter(u=>['Gestor','Administrador'].includes(u.nivel));
+ const current=selected||el.value||'';
+ el.innerHTML='<option value="">Selecione o aprovador</option>'+users.map(u=>`<option value="${safe(u.login)}">${safe(u.nome)} — ${safe(u.cargo||u.nivel)}</option>`).join('');
+ if(users.some(u=>u.login===current))el.value=current;
+}
+function applyWorkflowConfig(){
+ const c=getWorkflowConfig();
+ if($('wrapPrioridade'))$('wrapPrioridade').classList.toggle('hidden',!c.priorityEnabled);
+ if($('wrapAprovador'))$('wrapAprovador').classList.toggle('hidden',!c.approvalEnabled);
+ if($('navAprov'))$('navAprov').style.display=(getModules().aprovacao&&c.approvalEnabled)?'inline-block':'none';
+ if($('submitApprovalBtn'))$('submitApprovalBtn').textContent=c.approvalEnabled?'Enviar para aprovação':'Finalizar relatório';
+}
+function selectedApprover(){
+ const login=$('aprovador')?.value||'';
+ const u=get('users',[]).find(x=>x.login===login);
+ return u?{login:u.login,nome:u.nome,matricula:u.matricula||'',cargo:u.cargo||'',email:u.email||''}:null;
+}
 
 const equipmentIdDefaults={tag:true,serie:true,sap:false,manual:true,descricao:true};
 function getEquipmentIdConfig(){return {...equipmentIdDefaults,...get('equipmentIdConfig',equipmentIdDefaults)}}
@@ -878,7 +980,7 @@ function applyEquipmentIdConfig(){
 const standardFields=[['tag','TAG'],['equipamento','Equipamento'],['area','Área / Sistema'],['fabricante','Fabricante'],['modelo','Modelo'],['serie','Nº de série'],['om','OM / OS'],['problemas','Problemas identificados'],['causas','Possíveis causas'],['acoes','Ações executadas'],['obs','Observações finais']];const moduleDefaults={equipamentos:true,aprovacao:true,qrcode:true,whatsapp:true,email:true,camposPorTipo:true};const moduleLabels={equipamentos:'Cadastro de equipamentos',aprovacao:'Aprovação eletrônica',qrcode:'QR Code',whatsapp:'Compartilhamento WhatsApp',email:'Compartilhamento E-mail',camposPorTipo:'Campos por tipo de relatório'};
 function init(){if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
  $('dataFim').value=todayISO();
- updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig()}function login(){const u=get('users',[]).find(x=>x.login===$('loginUser').value.trim()&&x.senha===$('loginPass').value);if(!u){alert('Usuário ou senha inválidos');return}currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));openApp()}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=currentUser.nivel==='Administrador'?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
+ updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig();loadWorkflowConfig()}function login(){const u=get('users',[]).find(x=>x.login===$('loginUser').value.trim()&&x.senha===$('loginPass').value);if(!u){alert('Usuário ou senha inválidos');return}currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));openApp()}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=currentUser.nivel==='Administrador'?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
  currentEditingId=null;
  clearForm();
  if($('status')) $('status').value='Em elaboração';
@@ -899,7 +1001,17 @@ function resetUserPassword(i){
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
  let users=get('users',[]);
  users[i].senha=nova;set('users',users);alert('Senha redefinida.');
-}function showTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$('tab-'+t).classList.remove('hidden');if(t==='dashboard')renderDashboard();if(t==='historico')renderHistory();if(t==='aprovacoes')renderApprovals();if(t==='equipamentos')renderEquipments();if(t==='config'){loadCompany();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderModulesConfig()}}function getModules(){return{...moduleDefaults,...get('modules',moduleDefaults)}}function applyModules(){const m=getModules();$('navEquip').style.display=m.equipamentos?'inline-block':'none';$('navAprov').style.display=m.aprovacao?'inline-block':'none'}function renderModulesConfig(){const m=getModules();$('modulesArea').innerHTML=Object.keys(moduleLabels).map(k=>`<label class="moduleItem"><input type="checkbox" class="moduleCheck" value="${k}" ${m[k]?'checked':''}> ${moduleLabels[k]}</label>`).join('')}function saveModules(){const m={};document.querySelectorAll('.moduleCheck').forEach(x=>m[x.value]=x.checked);set('modules',m);applyModules();alert('Módulos salvos')}function yymm(){const d=new Date($('dataRelatorio').value||todayISO());return String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')}function newReportNumber(){const reps=get('reports',[]),ym=yymm();$('numero').value='RM-'+ym+'-'+String(reps.filter(r=>r.numero&&r.numero.startsWith('RM-'+ym)).length+1).padStart(3,'0')}$('dataRelatorio').addEventListener('change',()=>{newReportNumber();updatePeriodoInfo()});
+}function showTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$('tab-'+t).classList.remove('hidden');if(t==='dashboard')renderDashboard();if(t==='historico')renderHistory();if(t==='aprovacoes')renderApprovals();if(t==='equipamentos')renderEquipments();if(t==='config'){loadCompany();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderModulesConfig();loadEquipmentIdConfig();loadWorkflowConfig()}}function getModules(){return{...moduleDefaults,...get('modules',moduleDefaults)}}function applyModules(){
+ const m=getModules(),w=getWorkflowConfig();
+ $('navEquip').style.display=m.equipamentos?'inline-block':'none';
+ $('navAprov').style.display=(m.aprovacao&&w.approvalEnabled)?'inline-block':'none';
+}function renderModulesConfig(){const m=getModules();$('modulesArea').innerHTML=Object.keys(moduleLabels).map(k=>`<label class="moduleItem"><input type="checkbox" class="moduleCheck" value="${k}" ${m[k]?'checked':''}> ${moduleLabels[k]}</label>`).join('')}function saveModules(){const m={};document.querySelectorAll('.moduleCheck').forEach(x=>m[x.value]=x.checked);set('modules',m);applyModules();alert('Módulos salvos')}function yymm(){const d=new Date($('dataRelatorio').value||todayISO());return String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')}function newReportNumber(){
+ const reps=get('reports',[]),ym=yymm(),c=getWorkflowConfig();
+ const prefix=normalizePrefix($('reportPrefix')?.value||c.prefixes[0]);
+ const base=prefix+'-'+ym+'-';
+ const seq=reps.filter(r=>r.numero&&r.numero.startsWith(base)).length+1;
+ $('numero').value=base+String(seq).padStart(3,'0');
+}$('dataRelatorio').addEventListener('change',()=>{newReportNumber();updatePeriodoInfo()});
 $('dataFim').addEventListener('change',updatePeriodoInfo);
 function updatePeriodoInfo(){
  const ini=$('dataRelatorio')?.value, fim=$('dataFim')?.value;
@@ -907,13 +1019,19 @@ function updatePeriodoInfo(){
  if(!ini&&!fim){$('periodoInfo').value='';return}
  $('periodoInfo').value=(ini===fim||!fim)?brDate(ini):(brDate(ini)+' até '+brDate(fim));
 }
-function renderDashboard(){const reps=get('reports',[]),eq=get('equipments',[]),ym=yymm();$('kpiMes').innerText=reps.filter(r=>r.numero&&r.numero.includes('RM-'+ym)).length;$('kpiPend').innerText=reps.filter(r=>r.status==='Aguardando aprovação').length;$('kpiOk').innerText=reps.filter(r=>r.status==='Aprovado').length;$('kpiEqp').innerText=eq.length}function loadLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('empLogoPreview').src=r.result;$('empLogoPreview').dataset.logo=r.result};r.readAsDataURL(f)}function loadCompany(){const c=get('company',{});$('empNome').value=c.nome||'';$('empSetor').value=c.setor||'';if($('empEndereco'))$('empEndereco').value=c.endereco||'';$('empEmail').value=c.email||'';$('empGestor').value=c.gestor||'';$('empGestorCargo').value=c.gestorCargo||'';$('empLogoPreview').src=c.logo||'';$('empLogoPreview').dataset.logo=c.logo||''}function saveCompany(){set('company',{nome:$('empNome').value,setor:$('empSetor').value,endereco:$('empEndereco')?$('empEndereco').value:'',email:$('empEmail').value,gestor:$('empGestor').value,gestorCargo:$('empGestorCargo').value,logo:$('empLogoPreview').dataset.logo||''});alert('Empresa salva')}
+function renderDashboard(){
+ const reps=get('reports',[]),eq=get('equipments',[]),ym=yymm();
+ $('kpiMes').innerText=reps.filter(r=>r.numero&&r.numero.split('-')[1]===ym).length;
+ $('kpiPend').innerText=reps.filter(r=>r.status==='Aguardando aprovação').length;
+ $('kpiOk').innerText=reps.filter(r=>r.status==='Aprovado'||r.status==='Concluído').length;
+ $('kpiEqp').innerText=eq.length;
+}function loadLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('empLogoPreview').src=r.result;$('empLogoPreview').dataset.logo=r.result};r.readAsDataURL(f)}function loadCompany(){const c=get('company',{});$('empNome').value=c.nome||'';$('empSetor').value=c.setor||'';if($('empEndereco'))$('empEndereco').value=c.endereco||'';$('empEmail').value=c.email||'';$('empGestor').value=c.gestor||'';$('empGestorCargo').value=c.gestorCargo||'';$('empLogoPreview').src=c.logo||'';$('empLogoPreview').dataset.logo=c.logo||''}function saveCompany(){set('company',{nome:$('empNome').value,setor:$('empSetor').value,endereco:$('empEndereco')?$('empEndereco').value:'',email:$('empEmail').value,gestor:$('empGestor').value,gestorCargo:$('empGestorCargo').value,logo:$('empLogoPreview').dataset.logo||''});alert('Empresa salva')}
 function renderRequiredFieldsConfig(){const req=get('requiredFields',[]);$('requiredFieldsArea').innerHTML=standardFields.map(([id,label])=>`<label class="moduleItem"><input type="checkbox" class="reqCheck" value="${id}" ${req.includes(id)?'checked':''}> ${label}</label>`).join('')}function saveRequiredFields(){set('requiredFields',[...document.querySelectorAll('.reqCheck:checked')].map(x=>x.value));alert('Campos obrigatórios salvos')}function validateRequired(){let missing=[],req=get('requiredFields',[]);req.forEach(id=>{if(!($(id)?.value||'').trim())missing.push((standardFields.find(x=>x[0]===id)||[])[1]||id)});get('customFields',[]).forEach(f=>{if(f.obrigatorio&&!($(f.id)?.value||'').trim())missing.push(f.nome)});if(executors.length===0||!executors.some(e=>e.nome))missing.push('Executantes');if(missing.length){alert('Preencha os campos obrigatórios: '+missing.join(', '));return false}return true}function addCustomField(){const nome=$('cfNome').value.trim();if(!nome){alert('Informe o nome do campo');return}let f=get('customFields',[]);f.push({id:'cf_'+Date.now(),nome,tipo:$('cfTipo').value,obrigatorio:$('cfObrigatorio').value==='sim'});set('customFields',f);$('cfNome').value='';renderCustomFieldsConfig();renderCustomFieldsForm()}function delCustomField(i){let f=get('customFields',[]);if(!confirm('Excluir campo?'))return;f.splice(i,1);set('customFields',f);renderCustomFieldsConfig();renderCustomFieldsForm()}function renderCustomFieldsConfig(){const f=get('customFields',[]);$('customFieldsBody').innerHTML=f.map((x,i)=>`<tr><td>${safe(x.nome)}</td><td>${x.tipo}</td><td>${x.obrigatorio?'Sim':'Não'}</td><td><button class="danger smallBtn" onclick="delCustomField(${i})">Excluir</button></td></tr>`).join('')}function renderCustomFieldsForm(){const f=get('customFields',[]);$('customFieldsArea').innerHTML=f.length?'<h3>Campos personalizados</h3>'+f.map(x=>x.tipo==='textarea'?`<label>${safe(x.nome)}${x.obrigatorio?' *':''}</label><textarea id="${x.id}"></textarea>`:`<label>${safe(x.nome)}${x.obrigatorio?' *':''}</label><input id="${x.id}" type="${x.tipo}">`).join(''):''}function renderTypeFields(){const m=getModules();if(!m.camposPorTipo){$('typeFieldsArea').innerHTML='';return}const tipo=$('tipo').value,map={'Inspeção':['Itens inspecionados','Conformidades','Não conformidades'],'Teste':['Parâmetros medidos','Resultado do teste','Conclusão'],'Preventiva':['Atividades preventivas realizadas'],'Corretiva':['Sintoma da falha','Correção aplicada'],'Preditiva':['Medições / evidências preditivas','Tendência observada'],'Emergencial':['Condição de emergência','Ação imediata']};$('typeFieldsArea').innerHTML=(map[tipo]||[]).map((n,i)=>`<label>${n}</label><textarea id="typeField${i}" data-type-label="${safe(n)}"></textarea>`).join('')}
-function addUser(){let u=get('users',[]);if(!$('uLogin').value||!$('uSenha').value||!$('uNome').value){alert('Preencha login, senha e nome');return}if(u.some(x=>x.login===$('uLogin').value.trim())){alert('Login já existe');return}u.push({login:$('uLogin').value.trim(),senha:$('uSenha').value,nivel:$('uNivel').value,nome:$('uNome').value,matricula:$('uMatricula').value,cargo:$('uCargo').value,email:$('uEmail').value});set('users',u);renderUsers();['uLogin','uSenha','uNome','uMatricula','uCargo','uEmail'].forEach(id=>$(id).value='')}function renderUsers(){
+function addUser(){let u=get('users',[]);if(!$('uLogin').value||!$('uSenha').value||!$('uNome').value){alert('Preencha login, senha e nome');return}if(u.some(x=>x.login===$('uLogin').value.trim())){alert('Login já existe');return}u.push({login:$('uLogin').value.trim(),senha:$('uSenha').value,nivel:$('uNivel').value,nome:$('uNome').value,matricula:$('uMatricula').value,cargo:$('uCargo').value,email:$('uEmail').value});set('users',u);renderUsers();renderApproverOptions();['uLogin','uSenha','uNome','uMatricula','uCargo','uEmail'].forEach(id=>$(id).value='')}function renderUsers(){
  const u=get('users',[]);
  $('usersBody').innerHTML=u.map((x,i)=>`<tr><td>${safe(x.login)}</td><td>${safe(x.nome)}</td><td>${safe(x.matricula||'')}</td><td>${safe(x.cargo||'')}</td><td>${safe(x.nivel)}</td><td><button class="light smallBtn" onclick="resetUserPassword(${i})">Nova senha</button> <button class="danger smallBtn" onclick="delUser(${i})">Excluir</button></td></tr>`).join('')
 }
-function delUser(i){let u=get('users',[]);if(u[i].login==='admin'){alert('O admin inicial não pode ser excluído.');return}u.splice(i,1);set('users',u);renderUsers()}
+function delUser(i){let u=get('users',[]);if(u[i].login==='admin'){alert('O admin inicial não pode ser excluído.');return}u.splice(i,1);set('users',u);renderUsers();renderApproverOptions()}
 function addEquipment(){
  let e=get('equipments',[]),c=getEquipmentIdConfig();
  const tag=($('eqTag')?.value||'').trim(),serie=($('eqSerie')?.value||'').trim(),sap=($('eqSap')?.value||'').trim();
@@ -1056,11 +1174,13 @@ function loadReportForEdit(id){
  }
  currentEditingId=id;
  $('numero').value=r.numero||'';
+ renderPrefixOptions(r.prefixo||String(r.numero||'RM').split('-')[0]);
  $('dataRelatorio').value=r.data||todayISO();
  if($('dataFim')) $('dataFim').value=r.dataFim||r.data||todayISO();
  $('tipo').value=r.tipo||'Preventiva';
  $('prioridade').value=r.prioridade||'Baixa';
  $('status').value=r.status||'Em elaboração';
+ renderApproverOptions(r.aprovador?.login||'');
  $('tag').value=r.tag||'';
  $('equipamento').value=r.equipamento||'';
  $('area').value=r.area||'';
@@ -1100,7 +1220,10 @@ function collectTypeFields(){return[...document.querySelectorAll('[id^=typeField
   data:$('dataRelatorio').value,
   dataFim:$('dataFim')?$('dataFim').value:$('dataRelatorio').value,
   tipo:$('tipo').value,
-  prioridade:$('prioridade').value,
+  prioridade:getWorkflowConfig().priorityEnabled?$('prioridade').value:'',
+  prefixo:$('reportPrefix')?$('reportPrefix').value:'RM',
+  aprovador:selectedApprover(),
+  approvalEnabled:getWorkflowConfig().approvalEnabled,
   status:statusOverride||$('status').value,
   tag:$('tag').value,
   equipamento:$('equipamento').value,
@@ -1145,12 +1268,12 @@ function saveReportWithStatus(st){
      reps.push(r);
    }
    set('reports',reps);
-   alert(st==='Aguardando aprovação' ? 'Relatório enviado para aprovação: '+r.numero : 'Relatório salvo: '+r.numero);
+   alert(st==='Aguardando aprovação'?'Relatório enviado para '+(r.aprovador?.nome||'aprovação')+': '+r.numero:(st==='Concluído'?'Relatório finalizado: '+r.numero:'Relatório salvo: '+r.numero));
    clearForm();
    renderHistory();
    renderApprovals();
    renderDashboard();
-   showTab(st==='Aguardando aprovação' ? 'aprovacoes' : 'historico');
+   showTab(st==='Aguardando aprovação'&&getWorkflowConfig().approvalEnabled?'aprovacoes':'historico');
  }catch(e){
    alert('Erro ao salvar relatório: '+e.message);
  }
@@ -1180,23 +1303,27 @@ function saveDraft(){
    alert('Erro ao salvar rascunho: '+e.message);
  }
 }function validateSignaturesForApproval(){
+ const c=getWorkflowConfig();
+ if(!c.signatureRequired)return true;
  const lista=(executors||[]).filter(e=>e.nome||e.matricula||e.cargo);
- if(!lista.length){
-   alert('Adicione pelo menos um executante.');
-   return false;
- }
+ if(!lista.length){alert('Adicione pelo menos um executante.');return false}
  const pendentes=lista.map((e,i)=>({i:i+1,nome:e.nome||('Executante '+(i+1)),ok:!!e.assinatura})).filter(x=>!x.ok);
  if(pendentes.length){
-   alert('Não é possível enviar para aprovação.\n\nAssinatura pendente:\n' + pendentes.map(x=>'Executante '+x.i+' - '+x.nome).join('\n'));
-   return false;
+  alert('Não é possível finalizar o relatório.\n\nAssinatura pendente:\n'+pendentes.map(x=>'Executante '+x.i+' - '+x.nome).join('\n'));
+  return false;
  }
  return true;
 }
 function submitForApproval(){
+ const c=getWorkflowConfig();
  if(!validateRequired())return;
  if(!validateSignaturesForApproval())return;
- const st = getModules().aprovacao ? 'Aguardando aprovação' : 'Aprovado';
- if($('status')) $('status').value = st;
+ if(c.approvalEnabled&&!selectedApprover()){
+  alert('Selecione o aprovador responsável.');
+  return;
+ }
+ const st=c.approvalEnabled?'Aguardando aprovação':'Concluído';
+ if($('status'))$('status').value=st;
  saveReportWithStatus(st);
 }function clearForm(){
  ['tag','equipamento','area','fabricante','modelo','serie','codigoSap','descricaoEquip','om','problemas','causas','acoes','obs'].forEach(id=>{if($(id))$(id).value=''});
@@ -1207,6 +1334,8 @@ function submitForApproval(){
  if($('tipo'))$('tipo').value='Preventiva';
  if($('prioridade'))$('prioridade').value='Baixa';
  if($('status'))$('status').value='Em elaboração';
+ renderPrefixOptions();
+ renderApproverOptions();
  get('customFields',[]).forEach(f=>{if($(f.id))$(f.id).value=''});
  photos=[];
  renderPhotos();
@@ -1217,18 +1346,22 @@ function submitForApproval(){
  newReportNumber();
 }function setHistoryStatusFilter(st){if($('filterStatus'))$('filterStatus').value=st;renderHistory()}
 function renderHistory(){let reps=get('reports',[]).slice().reverse(),q=($('searchTerm')?.value||'').toLowerCase(),st=$('filterStatus')?.value||'',tp=$('filterType')?.value||'';reps=reps.filter(r=>(!st||r.status===st)&&(!tp||r.tipo===tp)&&(!q||JSON.stringify([r.numero,r.tag,r.equipamento,(r.executors||[]).map(e=>e.nome)]).toLowerCase().includes(q)));$('historyBody').innerHTML=reps.map(r=>`<tr><td>${safe(r.numero)}</td><td>${brDate(r.data)}</td><td>${safe(r.tag)}</td><td>${safe(r.equipamento)}</td><td>${safe((r.executors||[]).map(e=>e.nome).join(', '))}</td><td>${statusBadge(r.status)}</td><td><button class="smallBtn" onclick="printSaved('${r.id}')">PDF</button> <button class="smallBtn light" onclick="loadReportForEdit('${r.id}')">Editar</button> <button class="smallBtn light" onclick="shareReportWhatsApp('${r.id}')">WhatsApp</button></td></tr>`).join('')}function renderApprovals(){
- const reps=get('reports',[]).filter(r=>r.status==='Aguardando aprovação'||r.status==='Correção solicitada');
- $('approvalList').innerHTML = reps.length ? reps.map(r=>`
-  <div class="approvalBox">
-    <b>${safe(r.numero)}</b> — ${safe(r.tag)} / ${safe(r.equipamento)} ${statusBadge(r.status)}
-    <br><span class="small">Executantes: ${safe((r.executors||[]).map(e=>e.nome).join(', '))}</span>
-    ${r.approval?.motivo?`<br><span class="small"><b>Motivo:</b> ${safe(r.approval.motivo)}</span>`:''}
-    <br><br>
-    <button class="smallBtn" onclick="printSaved('${r.id}')">Visualizar PDF</button>
-    <button class="smallBtn ok" onclick="approveReport('${r.id}')">Aprovar</button>
-    <button class="smallBtn danger" onclick="rejectReport('${r.id}')">Reprovar</button>
-    <button class="smallBtn warn" onclick="correctionReport('${r.id}')">Solicitar correção</button>
-  </div><br>`).join('') : '<p>Nenhuma aprovação pendente.</p>';
+ const w=getWorkflowConfig();
+ if(!w.approvalEnabled){$('approvalList').innerHTML='<p>A aprovação eletrônica está desativada.</p>';return}
+ let reps=get('reports',[]).filter(r=>r.status==='Aguardando aprovação'||r.status==='Correção solicitada');
+ if(currentUser.nivel==='Gestor')reps=reps.filter(r=>r.aprovador?.login===currentUser.login);
+ $('approvalList').innerHTML=reps.length?reps.map(r=>`
+ <div class="approvalBox">
+  <b>${safe(r.numero)}</b> — ${safe(r.tag)} / ${safe(r.equipamento)} ${statusBadge(r.status)}
+  <br><span class="small">Executantes: ${safe((r.executors||[]).map(e=>e.nome).join(', '))}</span>
+  <br><span class="small"><b>Aprovador:</b> ${safe(r.aprovador?.nome||'Não informado')}</span>
+  ${r.approval?.motivo?`<br><span class="small"><b>Motivo:</b> ${safe(r.approval.motivo)}</span>`:''}
+  <br><br>
+  <button class="smallBtn" onclick="printSaved('${r.id}')">Visualizar PDF</button>
+  <button class="smallBtn ok" onclick="approveReport('${r.id}')">Aprovar</button>
+  <button class="smallBtn danger" onclick="rejectReport('${r.id}')">Reprovar</button>
+  <button class="smallBtn warn" onclick="correctionReport('${r.id}')">Solicitar correção</button>
+ </div><br>`).join(''):'<p>Nenhuma aprovação pendente para este usuário.</p>';
 }
 function updateReportStatus(id,status,motivo){
  let reps=get('reports',[]), r=reps.find(x=>x.id===id);
@@ -1241,64 +1374,63 @@ function updateReportStatus(id,status,motivo){
  renderDashboard();
  alert('Status atualizado: '+status);
  if(status==='Aprovado'||status==='Reprovado') showTab('historico');
-}function approveReport(id){if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode aprovar.');return}updateReportStatus(id,'Aprovado','')}function rejectReport(id){if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode reprovar.');return}const m=prompt('Informe o motivo da reprovação:');if(m===null||!m.trim())return;updateReportStatus(id,'Reprovado',m)}function correctionReport(id){if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode solicitar correção.');return}const m=prompt('Informe o que precisa ser corrigido:');if(m===null||!m.trim())return;updateReportStatus(id,'Correção solicitada',m)}
+}function approveReport(id){
+ if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode aprovar.');return}
+ const r=get('reports',[]).find(x=>x.id===id);
+ if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
+ updateReportStatus(id,'Aprovado','');
+}function rejectReport(id){
+ if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode reprovar.');return}
+ const r=get('reports',[]).find(x=>x.id===id);
+ if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
+ const m=prompt('Informe o motivo da reprovação:');if(m===null||!m.trim())return;
+ updateReportStatus(id,'Reprovado',m);
+}function correctionReport(id){
+ if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode solicitar correção.');return}
+ const r=get('reports',[]).find(x=>x.id===id);
+ if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
+ const m=prompt('Informe o que precisa ser corrigido:');if(m===null||!m.trim())return;
+ updateReportStatus(id,'Correção solicitada',m);
+}
 function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div class="pdfText">${safe(v)}</div>`:''}function reportHTML(r){
- const c=get('company',{}), m=getModules();
+ const c=get('company',{}),m=getModules(),w=getWorkflowConfig();
+ const approvalOn=r.approvalEnabled!==undefined?r.approvalEnabled:w.approvalEnabled;
  const sk=statusKey(r.status);
  const typeSecs=(r.typeFields||[]).map(x=>sec(x.nome,x.valor)).join('');
  const custom=(r.customValues||[]).filter(x=>x.valor).map(x=>sec(x.nome,x.valor)).join('');
  const photoRows=(r.photos||[]).map((p,i)=>`${i%2===0?'<tr>':''}<td><img src="${p.src}"><div class="pdfCaption"><b>${safe(p.categoria||'Evidência')}:</b> ${safe(p.comment||'')}</div></td>${i%2===1?'</tr>':''}`).join('')+((r.photos||[]).length%2?'<td></td></tr>':'');
- const approval=r.approval?`<div class="pdfApproval"><b>Status da aprovação:</b> ${safe(r.approval.status)}<br><b>Gestor:</b> ${safe(r.approval.gestor?.nome||'')} — ${safe(r.approval.gestor?.cargo||'')}<br><b>Data/hora:</b> ${safe(r.approval.data||'')}${r.approval.motivo?`<br><b>Comentário:</b> ${safe(r.approval.motivo)}`:''}</div>`:'';
- const qr=m.qrcode?`<div class="pdfQr"><div class="qrBox">QR CODE<br>${safe(r.numero)}</div><div><b>Validação digital do relatório</b><br>Na versão profissional, este QR Code abrirá o relatório original no sistema.<br><b>Relatório:</b> ${safe(r.numero)}<br><b>Equipamento:</b> ${safe(r.tag)}</div></div>`:'';
- const signCards=(r.executors||[]).map((e,i)=>`<div class="pdfSignCard">
-      <div class="pdfSignRole">EXECUTANTE ${i+1}</div>
-      <div class="pdfSignSpace">${e.assinatura?`<img class="pdfSignImgCard" src="${e.assinatura}">`:''}</div>
-      <div class="pdfSignLine"></div>
-      <div class="pdfSignName">${safe(e.nome)}</div>
-      <div class="pdfSignMeta">${safe(e.cargo)}${e.cargo&&e.matricula?' - ':''}${e.matricula?'Mat.: '+safe(e.matricula):''}</div>
-    </div>`).join('');
+ const approval=approvalOn&&r.approval?`<div class="pdfApproval"><b>Status da aprovação:</b> ${safe(r.approval.status)}<br><b>Gestor:</b> ${safe(r.approval.gestor?.nome||'')} — ${safe(r.approval.gestor?.cargo||'')}<br><b>Data/hora:</b> ${safe(r.approval.data||'')}${r.approval.motivo?`<br><b>Comentário:</b> ${safe(r.approval.motivo)}`:''}</div>`:'';
+ const qr=m.qrcode?`<div class="pdfQr"><div class="qrBox">QR CODE<br>${safe(r.numero)}</div><div><b>Validação digital do relatório</b><br>Na versão profissional, este QR Code abrirá o relatório original no sistema.<br><b>Relatório:</b> ${safe(r.numero)}<br><b>Equipamento:</b> ${safe(r.tag||r.serie||r.codigoSap||r.equipamento)}</div></div>`:'';
+ const signCards=(r.executors||[]).map((e,i)=>`<div class="pdfSignCard"><div class="pdfSignRole">EXECUTANTE ${i+1}</div><div class="pdfSignSpace">${e.assinatura?`<img class="pdfSignImgCard" src="${e.assinatura}">`:''}</div><div class="pdfSignLine"></div><div class="pdfSignName">${safe(e.nome)}</div><div class="pdfSignMeta">${safe(e.cargo)}${e.cargo&&e.matricula?' - ':''}${e.matricula?'Mat.: '+safe(e.matricula):''}</div></div>`).join('');
+ let wmMode=w.watermarkMode||'auto';
+ if(wmMode==='auto')wmMode=approvalOn?'status':'area';
+ const wmText=wmMode==='status'?(r.status||''):wmMode==='area'?(r.area||''):'';
+ const watermark=wmMode==='none'||!wmText?'':`<div class="pdfWmLayer">${wmMode==='status'?`<div class="pdfWmStatus wm-${sk}">${safe(wmText)}</div>`:`<div class="pdfWmText">${safe(wmText)}</div>`}</div>`;
+ const priorityCell=w.priorityEnabled&&r.prioridade?`<td><b>Prioridade:</b> ${safe(r.prioridade)}</td>`:'';
+ const generalCols=w.priorityEnabled&&r.prioridade?4:3;
+ const statusSeal=approvalOn?`<div class="pdfStatusSeal seal-${sk}">${safe(r.status)}</div>`:'';
+ const managerCard=approvalOn?`<div class="pdfSignCard pdfSignManager"><div class="pdfSignRole">RESPONSÁVEL TÉCNICO / GESTOR</div><div class="pdfSignSpace">${r.approval?.status==='Aprovado'?'Assinado eletronicamente':''}</div><div class="pdfSignLine"></div><div class="pdfSignName">${safe(r.aprovador?.nome||c.gestor||'')}</div><div class="pdfSignMeta">${safe(r.aprovador?.cargo||c.gestorCargo||'')}</div></div>`:'';
  return `<div class="reportPaper">
-  <div class="pdfWmLayer">
-    <div class="pdfWmText">${safe(c.setor||'MANUTENÇÃO')}</div>
-    <div class="pdfWmStatus wm-${sk}">${safe(r.status||'EM ELABORAÇÃO')}</div>
-  </div>
-  <div class="reportContent">
+ ${watermark}
+ <div class="reportContent">
   <div class="pdfHead">
-    <div class="pdfLogo">${c.logo?`<img src="${c.logo}">`:''}</div>
-    <div class="pdfTitle"><div>${safe(c.nome||'NOME DA EMPRESA')}</div><div>${safe(c.setor||'')}</div><div>RELATÓRIO DE MANUTENÇÃO</div>${c.endereco?`<div style="font-size:8pt;color:#000;margin-top:1mm">${safe(c.endereco)}</div>`:''}</div>
-    <div class="pdfMeta"><div><b>Nº:</b> ${safe(r.numero)}</div><div><b>Início:</b> ${brDate(r.data)}</div>${r.dataFim&&r.dataFim!==r.data?`<div><b>Fim:</b> ${brDate(r.dataFim)}</div>`:''}<div><b>Status:</b> ${safe(r.status)}</div><div class="pdfStatusSeal seal-${sk}">${safe(r.status)}</div></div>
+   <div class="pdfLogo">${c.logo?`<img src="${c.logo}">`:''}</div>
+   <div class="pdfTitle"><div>${safe(c.nome||'NOME DA EMPRESA')}</div><div>${safe(c.setor||'')}</div><div>RELATÓRIO DE MANUTENÇÃO</div>${c.endereco?`<div style="font-size:8pt;color:#000;margin-top:1mm">${safe(c.endereco)}</div>`:''}</div>
+   <div class="pdfMeta"><div><b>Nº:</b> ${safe(r.numero)}</div>${r.dataFim&&r.dataFim!==r.data?`<div><b>Fim:</b> ${brDate(r.dataFim)}</div>`:''}<div><b>Status:</b> ${safe(r.status)}</div>${statusSeal}</div>
   </div>
   <div class="pdfSectionTitle">Dados gerais</div>
-  <table class="pdfTable"><tr><td><b>Tipo:</b> ${safe(r.tipo)}</td><td><b>Prioridade:</b> ${safe(r.prioridade)}</td><td><b>Data início:</b> ${brDate(r.data)}</td><td><b>Data fim:</b> ${brDate(r.dataFim||r.data)}</td></tr></table>
+  <table class="pdfTable"><tr><td><b>Tipo:</b> ${safe(r.tipo)}</td>${priorityCell}<td><b>Data início:</b> ${brDate(r.data)}</td><td><b>Data fim:</b> ${brDate(r.dataFim||r.data)}</td></tr></table>
   <div class="pdfSectionTitle">Dados do equipamento</div>
-  <table class="pdfTable"><tr><td><b>TAG:</b> ${safe(r.tag)}</td><td><b>Equipamento:</b> ${safe(r.equipamento)}</td><td><b>Área/Sistema:</b> ${safe(r.area)}</td></tr><tr><td><b>Fabricante:</b> ${safe(r.fabricante)}</td><td><b>Modelo:</b> ${safe(r.modelo)}</td><td><b>Nº série:</b> ${safe(r.serie)}</td></tr>${r.codigoSap||r.descricaoEquip?`<tr><td><b>Código SAP:</b> ${safe(r.codigoSap)}</td><td colspan="2"><b>Descrição:</b> ${safe(r.descricaoEquip)}</td></tr>`:'' }<tr><td colspan="3"><b>OM/OS:</b> ${safe(r.om)}</td></tr></table>
+  <table class="pdfTable"><tr><td><b>TAG:</b> ${safe(r.tag)}</td><td><b>Equipamento:</b> ${safe(r.equipamento)}</td><td><b>Área/Sistema:</b> ${safe(r.area)}</td></tr><tr><td><b>Fabricante:</b> ${safe(r.fabricante)}</td><td><b>Modelo:</b> ${safe(r.modelo)}</td><td><b>Nº série:</b> ${safe(r.serie)}</td></tr>${r.codigoSap||r.descricaoEquip?`<tr><td><b>Código SAP:</b> ${safe(r.codigoSap)}</td><td colspan="2"><b>Descrição:</b> ${safe(r.descricaoEquip)}</td></tr>`:''}<tr><td colspan="3"><b>OM/OS:</b> ${safe(r.om)}</td></tr></table>
   ${typeSecs}${sec('Problemas identificados',r.problemas)}${sec('Possíveis causas',r.causas)}${sec('Ações executadas',r.acoes)}${sec('Observações finais',r.obs)}${custom}
   ${(r.photos||[]).length?`<div class="pdfSectionTitle">Evidências fotográficas</div><table class="pdfPhotos">${photoRows}</table>`:''}
   <div class="pdfFinalBlock">
-    <div class="pdfSignSection">
-      <div class="pdfSectionTitle">Assinaturas</div>
-      <div class="pdfSignCards">
-        ${signCards}
-        <div class="pdfSignCard pdfSignManager">
-          <div class="pdfSignRole">RESPONSÁVEL TÉCNICO / GESTOR</div>
-          <div class="pdfSignSpace">${r.approval?.status==='Aprovado'?'Assinado eletronicamente':''}</div>
-          <div class="pdfSignLine"></div>
-          <div class="pdfSignName">${safe(c.gestor||'')}</div>
-          <div class="pdfSignMeta">${safe(c.gestorCargo||'')}</div>
-        </div>
-      </div>
-    </div>
-    ${approval}
-    <div class="pdfEndBlock">
-      ${qr}
-      <div class="pdfFooter">
-        <div>Gerado por Sistema de Relatórios de Manutenção</div>
-        <div>Relatório: ${safe(r.numero)} | Versão: 7.1 PWA | Emitido em: ${emitidoEm()}</div>
-      </div>
-    </div>
+   <div class="pdfSignSection"><div class="pdfSectionTitle">Assinaturas</div><div class="pdfSignCards">${signCards}${managerCard}</div></div>
+   ${approval}
+   <div class="pdfEndBlock">${qr}<div class="pdfFooter"><div>Gerado por Sistema de Relatórios de Manutenção</div><div>Relatório: ${safe(r.numero)} | Versão: 7.2 PWA | Emitido em: ${emitidoEm()}</div></div></div>
   </div>
-  </div>
- </div>`
+ </div>
+ </div>`;
 }function openReportInNewTab(r){
  const report = reportHTML(r);
  const styleTags = Array.from(document.querySelectorAll('style')).map(s=>s.innerHTML).join('\n');
@@ -1444,6 +1576,16 @@ body{background:#fff;margin:0}
 .equipIdConfig input{width:auto}
 .manualHint{padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#475569;font-size:12px;margin-top:6px}
 @media(max-width:780px){.equipIdConfig{grid-template-columns:1fr}}
+
+/* V7.2 - fluxo configurável, prefixos e aprovador */
+.workflowConfig{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:9px}
+.workflowConfig label.configCheck{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:10px;background:#fafafa}
+.workflowConfig label.configCheck input{width:auto}
+.configPanel{border:1px solid var(--border);border-radius:12px;padding:12px;background:#f8fafc;margin-top:10px}
+#wrapAprovador.hidden,#wrapPrioridade.hidden,#wrapPrefixo.hidden{display:none!important}
+.st-done{background:#dbeafe;color:#1e3a8a}
+.seal-done{background:#dbeafe;color:#1e3a8a}
+@media(max-width:780px){.workflowConfig{grid-template-columns:1fr}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#001f8f">
@@ -1486,7 +1628,7 @@ async function installPWA(){if(!deferredPwaPrompt){alert('Se o botão de instala
 function updatePwaStatus(){const el=document.getElementById('pwaStatus');if(!el)return;if(navigator.onLine){el.textContent='Online';el.classList.remove('offlineBadge')}else{el.textContent='Offline';el.classList.add('offlineBadge')}}
 window.addEventListener('online',updatePwaStatus);window.addEventListener('offline',updatePwaStatus);
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{});updatePwaStatus();});}
-function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','equipmentIdConfig','equipments','reports'];const data={versao:'7.1 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','workflowConfig','equipmentIdConfig','equipments','reports'];const data={versao:'7.2 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function importBackup(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data.dados){alert('Arquivo de backup inválido.');return}if(!confirm('Importar este backup? Os dados atuais deste aparelho serão substituídos.'))return;Object.keys(data.dados).forEach(k=>set(k,data.dados[k]));alert('Backup importado com sucesso. O aplicativo será recarregado.');location.reload()}catch(err){alert('Erro ao importar backup: '+err.message)}};reader.readAsText(f);e.target.value=''}
 
 init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}
