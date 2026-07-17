@@ -1,7 +1,7 @@
 {
-  "name": "Relatórios de Manutenção V7.2",
+  "name": "Relatórios de Manutenção V7.3",
   "short_name": "Relatórios",
-  "description": "Relatórios configuráveis com aprovação, assinaturas, prefixos e identificação inteligente.",
+  "description": "Relatórios configuráveis com importação de base Excel de códigos SAP.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

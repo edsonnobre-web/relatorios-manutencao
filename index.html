@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatórios de Manutenção - V7.2 PWA</title>
+<title>Relatórios de Manutenção - V7.3 PWA</title>
 <style>
 :root{--azul:#001f8f;--bg:#f2f5f9;--card:#fff;--text:#172033;--muted:#657085;--border:#d6dce8;--ok:#15803d;--warn:#b45309;--danger:#b91c1c;--soft:#eef3ff}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}header{height:58px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:sticky;top:0;z-index:20}header h1{margin:0;font-size:17px;color:var(--azul)}button{border:0;background:var(--azul);color:#fff;border-radius:8px;padding:10px 13px;font-weight:700;cursor:pointer}button.secondary{background:#374151}button.light{background:#e5e7eb;color:#111827}button.danger{background:var(--danger)}button.ok{background:var(--ok)}button.warn{background:var(--warn)}button.smallBtn{padding:6px 9px;font-size:12px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}textarea{min-height:85px;resize:vertical}label{font-size:13px;font-weight:700;display:block;margin:0 0 4px}.container{max-width:1180px;margin:auto;padding:14px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(20,30,55,.04)}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.hidden{display:none!important}.small{font-size:12px;color:var(--muted)}.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:var(--soft);color:#1e3a8a;padding:4px 9px;font-size:12px;font-weight:700}.status{font-weight:700;border-radius:999px;padding:4px 8px;font-size:12px;display:inline-block}.st-draft{background:#e5e7eb;color:#111827}.st-wait{background:#fef3c7;color:#92400e}.st-ok{background:#dcfce7;color:#166534}.st-bad{background:#fee2e2;color:#991b1b}.st-corr{background:#ffedd5;color:#9a3412}.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}.table th,.table td{border:1px solid var(--border);padding:8px;text-align:left;vertical-align:middle}.table th{background:#f8fafc}
 #executorsBody td{padding:4px 6px}
@@ -804,6 +804,15 @@
 .st-done{background:#dbeafe;color:#1e3a8a}
 .seal-done{background:#dbeafe;color:#1e3a8a}
 @media(max-width:780px){.workflowConfig{grid-template-columns:1fr}}
+
+/* V7.3 - Importação da base Excel de códigos SAP */
+.sapImportBox{border:1px solid var(--border);border-radius:12px;background:#f8fafc;padding:12px;margin-top:10px}
+.sapImportStatus{margin-top:8px;padding:8px 10px;border-radius:8px;background:#eef3ff;color:#1e3a8a;font-size:13px}
+.sapImportStatus.ok{background:#dcfce7;color:#166534}
+.sapImportStatus.warn{background:#fff7ed;color:#9a3412}
+.sapImportStatus.error{background:#fee2e2;color:#991b1b}
+.sapActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sapProgress{width:100%;height:12px;margin-top:8px}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#001f8f">
@@ -812,9 +821,10 @@
 <meta name="apple-mobile-web-app-title" content="Relatórios Manutenção">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-<header><h1>Relatórios de Manutenção — V7.2 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
+<header><h1>Relatórios de Manutenção — V7.3 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
 <div id="loginScreen" class="login card"><h2>Entrar</h2><p class="small">Informe seu usuário e senha para acessar o sistema.</p><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
 <div id="app" class="container hidden">
 <div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
@@ -855,6 +865,23 @@
 <label><input type="checkbox" id="cfgManual"> Permitir descrição manual</label>
 <label><input type="checkbox" id="cfgMostrarDescricao"> Mostrar campo descrição completa</label>
 </div><br><button onclick="saveEquipmentIdConfig()">Salvar identificação</button>
+
+<hr><h3>Base de códigos SAP</h3>
+<p class="small">Importe uma planilha Excel contendo o código SAP e a descrição longa. A planilha não será enviada ao SAP nem a qualquer servidor: os dados ficam armazenados neste aparelho.</p>
+<div class="sapImportBox">
+  <label>Planilha Excel</label>
+  <input id="sapExcelFile" type="file" accept=".xlsx,.xls" onchange="previewSapExcel(event)">
+  <div id="sapMappingArea" class="grid hidden" style="margin-top:10px">
+    <div><label>Coluna do código SAP</label><select id="sapCodeColumn"></select></div>
+    <div><label>Coluna da descrição</label><select id="sapDescriptionColumn"></select></div>
+  </div>
+  <progress id="sapImportProgress" class="sapProgress hidden" max="100" value="0"></progress>
+  <div id="sapImportStatus" class="sapImportStatus">Nenhuma base SAP importada neste aparelho.</div>
+  <div class="sapActions">
+    <button id="sapImportBtn" onclick="importSapExcel()" disabled>Importar base</button>
+    <button class="danger" onclick="clearSapCatalog()">Limpar base SAP</button>
+  </div>
+</div>
 <hr><h3>Backup do aplicativo</h3>
 <p class="small">Use estas opções para salvar uma cópia dos relatórios, usuários, equipamentos e configurações deste aparelho.</p>
 <div class="backupActions">
@@ -877,6 +904,196 @@ function emitidoEm(){
 
 function statusClass(s){return{'Em elaboração':'st-draft','Aguardando aprovação':'st-wait','Aprovado':'st-ok','Reprovado':'st-bad','Correção solicitada':'st-corr','Concluído':'st-done'}[s]||'st-draft'}function statusBadge(s){return`<span class="status ${statusClass(s)}">${safe(s)}</span>`}
 
+
+
+const SAP_DB_NAME='RelatoriosManutencaoDB';
+const SAP_DB_VERSION=1;
+const SAP_STORE='sapCatalog';
+let sapWorkbookPreview=null;
+let sapSheetRows=[];
+let sapHeaders=[];
+
+function openSapDB(){
+ return new Promise((resolve,reject)=>{
+  const req=indexedDB.open(SAP_DB_NAME,SAP_DB_VERSION);
+  req.onupgradeneeded=()=>{
+   const db=req.result;
+   if(!db.objectStoreNames.contains(SAP_STORE)){
+    const store=db.createObjectStore(SAP_STORE,{keyPath:'codigo'});
+    store.createIndex('descricao','descricao',{unique:false});
+   }
+  };
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error);
+ });
+}
+async function sapCount(){
+ const db=await openSapDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction(SAP_STORE,'readonly');
+  const req=tx.objectStore(SAP_STORE).count();
+  req.onsuccess=()=>resolve(req.result||0);
+  req.onerror=()=>reject(req.error);
+  tx.oncomplete=()=>db.close();
+ });
+}
+async function getSapDescription(codigo){
+ const key=String(codigo||'').trim();
+ if(!key)return null;
+ const db=await openSapDB();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction(SAP_STORE,'readonly');
+  const req=tx.objectStore(SAP_STORE).get(key);
+  req.onsuccess=()=>resolve(req.result||null);
+  req.onerror=()=>reject(req.error);
+  tx.oncomplete=()=>db.close();
+ });
+}
+async function updateSapStatus(){
+ const el=$('sapImportStatus');if(!el)return;
+ try{
+  const count=await sapCount();
+  if(count){
+   const meta=get('sapCatalogMeta',{});
+   el.className='sapImportStatus ok';
+   el.innerHTML=`Base carregada: <b>${count.toLocaleString('pt-BR')}</b> códigos${meta.importedAt?` — importada em ${safe(meta.importedAt)}`:''}.`;
+  }else{
+   el.className='sapImportStatus';
+   el.textContent='Nenhuma base SAP importada neste aparelho.';
+  }
+ }catch(err){
+  el.className='sapImportStatus error';
+  el.textContent='Não foi possível consultar a base SAP: '+err.message;
+ }
+}
+function detectHeaderRow(rows){
+ const aliasesCode=['material','codigo sap','código sap','codigo','código'];
+ const aliasesDesc=['descrição longa','descricao longa','descrição','descricao'];
+ for(let i=0;i<Math.min(rows.length,20);i++){
+  const normalized=(rows[i]||[]).map(v=>String(v||'').trim().toLowerCase());
+  const hasCode=normalized.some(v=>aliasesCode.includes(v));
+  const hasDesc=normalized.some(v=>aliasesDesc.includes(v));
+  if(hasCode&&hasDesc)return i;
+ }
+ return 0;
+}
+function bestHeaderIndex(headers,aliases){
+ const normalized=headers.map(v=>String(v||'').trim().toLowerCase());
+ for(const alias of aliases){
+  const i=normalized.indexOf(alias);
+  if(i>=0)return i;
+ }
+ return -1;
+}
+function previewSapExcel(event){
+ const file=event.target.files[0];
+ if(!file)return;
+ if(typeof XLSX==='undefined'){
+  alert('O leitor de Excel ainda não foi carregado. Verifique a internet e abra o aplicativo novamente.');
+  return;
+ }
+ const status=$('sapImportStatus');
+ status.className='sapImportStatus warn';
+ status.textContent='Lendo a planilha...';
+ const reader=new FileReader();
+ reader.onload=e=>{
+  try{
+   sapWorkbookPreview=XLSX.read(e.target.result,{type:'array',cellDates:false});
+   const sheetName=sapWorkbookPreview.SheetNames[0];
+   const sheet=sapWorkbookPreview.Sheets[sheetName];
+   const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:'',raw:false});
+   const headerRow=detectHeaderRow(rows);
+   sapHeaders=(rows[headerRow]||[]).map((v,i)=>String(v||`Coluna ${i+1}`).trim()||`Coluna ${i+1}`);
+   sapSheetRows=rows.slice(headerRow+1);
+   const codeIndex=bestHeaderIndex(sapHeaders,['material','codigo sap','código sap','codigo','código']);
+   const descIndex=bestHeaderIndex(sapHeaders,['descrição longa','descricao longa','descrição','descricao']);
+   const options=sapHeaders.map((h,i)=>`<option value="${i}">${safe(h)} (coluna ${i+1})</option>`).join('');
+   $('sapCodeColumn').innerHTML=options;
+   $('sapDescriptionColumn').innerHTML=options;
+   if(codeIndex>=0)$('sapCodeColumn').value=String(codeIndex);
+   if(descIndex>=0)$('sapDescriptionColumn').value=String(descIndex);
+   $('sapMappingArea').classList.remove('hidden');
+   $('sapImportBtn').disabled=false;
+   status.className='sapImportStatus ok';
+   status.innerHTML=`Planilha reconhecida: <b>${safe(sheetName)}</b>. Linhas encontradas: <b>${sapSheetRows.length.toLocaleString('pt-BR')}</b>. Confira as colunas e clique em Importar base.`;
+  }catch(err){
+   sapWorkbookPreview=null;sapSheetRows=[];sapHeaders=[];
+   $('sapImportBtn').disabled=true;
+   status.className='sapImportStatus error';
+   status.textContent='Erro ao ler a planilha: '+err.message;
+  }
+ };
+ reader.readAsArrayBuffer(file);
+}
+async function importSapExcel(){
+ if(!sapSheetRows.length){alert('Selecione uma planilha válida.');return}
+ const codeCol=Number($('sapCodeColumn').value);
+ const descCol=Number($('sapDescriptionColumn').value);
+ if(codeCol===descCol){alert('Selecione colunas diferentes para código e descrição.');return}
+ const records=[];
+ const seen=new Set();
+ let ignored=0;
+ sapSheetRows.forEach(row=>{
+  const codigo=String(row[codeCol]??'').trim().replace(/\.0$/,'');
+  const descricao=String(row[descCol]??'').trim();
+  if(!codigo||!descricao){ignored++;return}
+  if(seen.has(codigo)){ignored++;return}
+  seen.add(codigo);
+  records.push({codigo,descricao});
+ });
+ if(!records.length){alert('Nenhum código e descrição válidos foram encontrados.');return}
+ if(!confirm(`Importar ${records.length.toLocaleString('pt-BR')} códigos? A nova importação substituirá a base SAP deste aparelho.`))return;
+ const status=$('sapImportStatus'),progress=$('sapImportProgress');
+ progress.classList.remove('hidden');progress.value=0;
+ $('sapImportBtn').disabled=true;
+ status.className='sapImportStatus warn';status.textContent='Importando base SAP...';
+ try{
+  const db=await openSapDB();
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction(SAP_STORE,'readwrite');
+   tx.objectStore(SAP_STORE).clear();
+   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+  });
+  const chunkSize=500;
+  for(let start=0;start<records.length;start+=chunkSize){
+   const chunk=records.slice(start,start+chunkSize);
+   await new Promise((resolve,reject)=>{
+    const tx=db.transaction(SAP_STORE,'readwrite');
+    const store=tx.objectStore(SAP_STORE);
+    chunk.forEach(r=>store.put(r));
+    tx.oncomplete=resolve;
+    tx.onerror=()=>reject(tx.error);
+   });
+   progress.value=Math.round(Math.min(100,(start+chunk.length)*100/records.length));
+   await new Promise(r=>setTimeout(r,0));
+  }
+  db.close();
+  set('sapCatalogMeta',{count:records.length,ignored,importedAt:new Date().toLocaleString('pt-BR'),fileName:$('sapExcelFile').files[0]?.name||''});
+  status.className='sapImportStatus ok';
+  status.innerHTML=`Importação concluída: <b>${records.length.toLocaleString('pt-BR')}</b> códigos. Linhas ignoradas/duplicadas: <b>${ignored.toLocaleString('pt-BR')}</b>.`;
+  $('sapExcelFile').value='';$('sapMappingArea').classList.add('hidden');sapSheetRows=[];sapWorkbookPreview=null;
+ }catch(err){
+  status.className='sapImportStatus error';
+  status.textContent='Erro durante a importação: '+err.message;
+ }finally{
+  progress.classList.add('hidden');
+  $('sapImportBtn').disabled=true;
+ }
+}
+async function clearSapCatalog(){
+ if(!confirm('Apagar toda a base de códigos SAP armazenada neste aparelho?'))return;
+ try{
+  const db=await openSapDB();
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction(SAP_STORE,'readwrite');
+   tx.objectStore(SAP_STORE).clear();
+   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+  });
+  db.close();
+  localStorage.removeItem('sapCatalogMeta');
+  updateSapStatus();
+ }catch(err){alert('Erro ao limpar a base: '+err.message)}
+}
 
 const workflowDefaults={
  approvalEnabled:true,
@@ -980,7 +1197,7 @@ function applyEquipmentIdConfig(){
 const standardFields=[['tag','TAG'],['equipamento','Equipamento'],['area','Área / Sistema'],['fabricante','Fabricante'],['modelo','Modelo'],['serie','Nº de série'],['om','OM / OS'],['problemas','Problemas identificados'],['causas','Possíveis causas'],['acoes','Ações executadas'],['obs','Observações finais']];const moduleDefaults={equipamentos:true,aprovacao:true,qrcode:true,whatsapp:true,email:true,camposPorTipo:true};const moduleLabels={equipamentos:'Cadastro de equipamentos',aprovacao:'Aprovação eletrônica',qrcode:'QR Code',whatsapp:'Compartilhamento WhatsApp',email:'Compartilhamento E-mail',camposPorTipo:'Campos por tipo de relatório'};
 function init(){if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
  $('dataFim').value=todayISO();
- updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig();loadWorkflowConfig()}function login(){const u=get('users',[]).find(x=>x.login===$('loginUser').value.trim()&&x.senha===$('loginPass').value);if(!u){alert('Usuário ou senha inválidos');return}currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));openApp()}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=currentUser.nivel==='Administrador'?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
+ updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig();loadWorkflowConfig();updateSapStatus()}function login(){const u=get('users',[]).find(x=>x.login===$('loginUser').value.trim()&&x.senha===$('loginPass').value);if(!u){alert('Usuário ou senha inválidos');return}currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));openApp()}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=currentUser.nivel==='Administrador'?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
  currentEditingId=null;
  clearForm();
  if($('status')) $('status').value='Em elaboração';
@@ -1001,7 +1218,7 @@ function resetUserPassword(i){
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
  let users=get('users',[]);
  users[i].senha=nova;set('users',users);alert('Senha redefinida.');
-}function showTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$('tab-'+t).classList.remove('hidden');if(t==='dashboard')renderDashboard();if(t==='historico')renderHistory();if(t==='aprovacoes')renderApprovals();if(t==='equipamentos')renderEquipments();if(t==='config'){loadCompany();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderModulesConfig();loadEquipmentIdConfig();loadWorkflowConfig()}}function getModules(){return{...moduleDefaults,...get('modules',moduleDefaults)}}function applyModules(){
+}function showTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$('tab-'+t).classList.remove('hidden');if(t==='dashboard')renderDashboard();if(t==='historico')renderHistory();if(t==='aprovacoes')renderApprovals();if(t==='equipamentos')renderEquipments();if(t==='config'){loadCompany();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderModulesConfig();loadEquipmentIdConfig();loadWorkflowConfig();updateSapStatus()}}function getModules(){return{...moduleDefaults,...get('modules',moduleDefaults)}}function applyModules(){
  const m=getModules(),w=getWorkflowConfig();
  $('navEquip').style.display=m.equipamentos?'inline-block':'none';
  $('navAprov').style.display=(m.aprovacao&&w.approvalEnabled)?'inline-block':'none';
@@ -1065,16 +1282,43 @@ function suggestEquipmentSearch(){
  const matches=get('equipments',[]).filter(x=>(c.tag&&normalizeSearch(x.tag).includes(v))||(c.serie&&normalizeSearch(x.serie).includes(v))||(c.sap&&normalizeSearch(x.codigoSap).includes(v))||normalizeSearch(x.nome).includes(v)||(c.descricao&&normalizeSearch(x.descricao).includes(v))).slice(0,20);
  if($('equipList'))$('equipList').innerHTML=matches.map(x=>`<option value="${safe(x.tag||x.serie||x.codigoSap||x.nome||x.descricao)}">${safe(x.nome||x.descricao||'')}</option>`).join('');
 }
-function fillEquipmentFromSearch(){
- const e=findEquipmentByAny($('equipSearch')?.value),c=getEquipmentIdConfig();
- if(!e){if(!c.manual&&($('equipSearch')?.value||'').trim())alert('Equipamento não encontrado. O preenchimento manual está desativado.');return}
- if($('tag'))$('tag').value=e.tag||'';if($('equipamento'))$('equipamento').value=e.nome||'';if($('area'))$('area').value=e.area||'';
- if($('fabricante'))$('fabricante').value=e.fabricante||'';if($('modelo'))$('modelo').value=e.modelo||'';if($('serie'))$('serie').value=e.serie||'';
- if($('codigoSap'))$('codigoSap').value=e.codigoSap||'';if($('descricaoEquip'))$('descricaoEquip').value=e.descricao||'';
+async function fillEquipmentFromSearch(){
+ const searchValue=$('equipSearch')?.value||'';
+ const e=findEquipmentByAny(searchValue),c=getEquipmentIdConfig();
+ if(e){
+  if($('tag'))$('tag').value=e.tag||'';if($('equipamento'))$('equipamento').value=e.nome||'';if($('area'))$('area').value=e.area||'';
+  if($('fabricante'))$('fabricante').value=e.fabricante||'';if($('modelo'))$('modelo').value=e.modelo||'';if($('serie'))$('serie').value=e.serie||'';
+  if($('codigoSap'))$('codigoSap').value=e.codigoSap||'';if($('descricaoEquip'))$('descricaoEquip').value=e.descricao||'';
+  return;
+ }
+ if(c.sap){
+  try{
+   const item=await getSapDescription(searchValue);
+   if(item){
+    if($('codigoSap'))$('codigoSap').value=item.codigo;
+    if($('descricaoEquip'))$('descricaoEquip').value=item.descricao;
+    if($('equipamento')&&!$('equipamento').value)$('equipamento').value=item.descricao.slice(0,120);
+    return;
+   }
+  }catch(err){console.warn(err)}
+ }
+ if(!c.manual&&searchValue.trim())alert('Equipamento ou código SAP não encontrado. O preenchimento manual está desativado.');
 }
-function fillDescriptionBySap(){
- const sap=normalizeSearch($('codigoSap')?.value);if(!sap)return;const e=get('equipments',[]).find(x=>normalizeSearch(x.codigoSap)===sap);
- if(e){if($('descricaoEquip'))$('descricaoEquip').value=e.descricao||e.nome||'';if($('equipamento')&&!$('equipamento').value)$('equipamento').value=e.nome||''}
+async function fillDescriptionBySap(){
+ const sap=String($('codigoSap')?.value||'').trim().replace(/\.0$/,'');
+ if(!sap)return;
+ const e=get('equipments',[]).find(x=>String(x.codigoSap||'').trim()===sap);
+ if(e){
+  if($('descricaoEquip'))$('descricaoEquip').value=e.descricao||e.nome||'';
+  if($('equipamento')&&!$('equipamento').value)$('equipamento').value=e.nome||'';
+  return;
+ }
+ try{
+  const item=await getSapDescription(sap);
+  if(item&&$('descricaoEquip'))$('descricaoEquip').value=item.descricao||'';
+ }catch(err){
+  console.warn('Falha ao consultar código SAP',err);
+ }
 }
 function fillEquipment(){fillEquipmentFromSearch()}function addExecutorRow(){executors.push({login:'',nome:'',matricula:'',cargo:'',assinatura:''});renderExecutors()}function renderExecutors(){const users=get('users',[]);$('executorsBody').innerHTML=executors.map((e,i)=>`<tr><td><select onchange="selectExecutor(${i},this.value)"><option value="">Selecionar</option>${users.map(u=>`<option value="${safe(u.login)}" ${e.login===u.login?'selected':''}>${safe(u.nome)}</option>`).join('')}</select></td><td><input value="${safe(e.matricula||'')}" oninput="executors[${i}].matricula=this.value"></td><td><input value="${safe(e.cargo||'')}" oninput="executors[${i}].cargo=this.value"></td><td>${e.assinatura?`<img class="sigThumb" src="${e.assinatura}"> <button class="smallBtn ok" onclick="openSignatureModal(${i})">Assinado</button>`:`<button class="smallBtn light" onclick="openSignatureModal(${i})">✍️ Assinar</button>`}</td><td><button class="smallBtn danger" onclick="removeExecutor(${i})">Remover</button></td></tr>`).join('')}function selectExecutor(i,login){const u=get('users',[]).find(x=>x.login===login);executors[i].login=login;if(u){executors[i].nome=u.nome;executors[i].matricula=u.matricula||'';executors[i].cargo=u.cargo||''}renderExecutors()}function removeExecutor(i){executors.splice(i,1);renderExecutors()}function openSignatureModal(i){activeSigIndex=i;$('sigTitle').innerText='Assinatura - '+(executors[i].nome||'Executante')+' (pode virar o celular de lado)';$('signatureModal').classList.remove('hidden');setupSignatureCanvas(executors[i].assinatura)}function closeSignatureModal(){$('signatureModal').classList.add('hidden');activeSigIndex=null}function setupSignatureCanvas(data){
  const c=$('signatureCanvas'),ctx=c.getContext('2d');
@@ -1427,7 +1671,7 @@ function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div cl
   <div class="pdfFinalBlock">
    <div class="pdfSignSection"><div class="pdfSectionTitle">Assinaturas</div><div class="pdfSignCards">${signCards}${managerCard}</div></div>
    ${approval}
-   <div class="pdfEndBlock">${qr}<div class="pdfFooter"><div>Gerado por Sistema de Relatórios de Manutenção</div><div>Relatório: ${safe(r.numero)} | Versão: 7.2 PWA | Emitido em: ${emitidoEm()}</div></div></div>
+   <div class="pdfEndBlock">${qr}<div class="pdfFooter"><div>Gerado por Sistema de Relatórios de Manutenção</div><div>Relatório: ${safe(r.numero)} | Versão: 7.3 PWA | Emitido em: ${emitidoEm()}</div></div></div>
   </div>
  </div>
  </div>`;
@@ -1586,6 +1830,15 @@ body{background:#fff;margin:0}
 .st-done{background:#dbeafe;color:#1e3a8a}
 .seal-done{background:#dbeafe;color:#1e3a8a}
 @media(max-width:780px){.workflowConfig{grid-template-columns:1fr}}
+
+/* V7.3 - Importação da base Excel de códigos SAP */
+.sapImportBox{border:1px solid var(--border);border-radius:12px;background:#f8fafc;padding:12px;margin-top:10px}
+.sapImportStatus{margin-top:8px;padding:8px 10px;border-radius:8px;background:#eef3ff;color:#1e3a8a;font-size:13px}
+.sapImportStatus.ok{background:#dcfce7;color:#166534}
+.sapImportStatus.warn{background:#fff7ed;color:#9a3412}
+.sapImportStatus.error{background:#fee2e2;color:#991b1b}
+.sapActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sapProgress{width:100%;height:12px;margin-top:8px}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#001f8f">
@@ -1594,6 +1847,7 @@ body{background:#fff;margin:0}
 <meta name="apple-mobile-web-app-title" content="Relatórios Manutenção">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="pdfViewerActions">
@@ -1628,7 +1882,7 @@ async function installPWA(){if(!deferredPwaPrompt){alert('Se o botão de instala
 function updatePwaStatus(){const el=document.getElementById('pwaStatus');if(!el)return;if(navigator.onLine){el.textContent='Online';el.classList.remove('offlineBadge')}else{el.textContent='Offline';el.classList.add('offlineBadge')}}
 window.addEventListener('online',updatePwaStatus);window.addEventListener('offline',updatePwaStatus);
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{});updatePwaStatus();});}
-function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','workflowConfig','equipmentIdConfig','equipments','reports'];const data={versao:'7.2 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','workflowConfig','equipmentIdConfig','equipments','reports','sapCatalogMeta'];const data={versao:'7.3 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function importBackup(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data.dados){alert('Arquivo de backup inválido.');return}if(!confirm('Importar este backup? Os dados atuais deste aparelho serão substituídos.'))return;Object.keys(data.dados).forEach(k=>set(k,data.dados[k]));alert('Backup importado com sucesso. O aplicativo será recarregado.');location.reload()}catch(err){alert('Erro ao importar backup: '+err.message)}};reader.readAsText(f);e.target.value=''}
 
 init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}
