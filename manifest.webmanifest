@@ -1,7 +1,7 @@
 {
-  "name": "Relatórios de Manutenção V7.3",
+  "name": "Relatórios de Manutenção V7.3.1",
   "short_name": "Relatórios",
-  "description": "Relatórios configuráveis com importação de base Excel de códigos SAP.",
+  "description": "Relatórios de manutenção com importação Excel SAP e ajuda orientada.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
