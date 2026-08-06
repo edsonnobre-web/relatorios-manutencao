@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatórios de Manutenção - V7.3.1 PWA</title>
+<title>Relatórios de Manutenção - V7.4 PWA</title>
 <style>
 :root{--azul:#001f8f;--bg:#f2f5f9;--card:#fff;--text:#172033;--muted:#657085;--border:#d6dce8;--ok:#15803d;--warn:#b45309;--danger:#b91c1c;--soft:#eef3ff}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}header{height:58px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:sticky;top:0;z-index:20}header h1{margin:0;font-size:17px;color:var(--azul)}button{border:0;background:var(--azul);color:#fff;border-radius:8px;padding:10px 13px;font-weight:700;cursor:pointer}button.secondary{background:#374151}button.light{background:#e5e7eb;color:#111827}button.danger{background:var(--danger)}button.ok{background:var(--ok)}button.warn{background:var(--warn)}button.smallBtn{padding:6px 9px;font-size:12px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}textarea{min-height:85px;resize:vertical}label{font-size:13px;font-weight:700;display:block;margin:0 0 4px}.container{max-width:1180px;margin:auto;padding:14px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(20,30,55,.04)}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.hidden{display:none!important}.small{font-size:12px;color:var(--muted)}.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:var(--soft);color:#1e3a8a;padding:4px 9px;font-size:12px;font-weight:700}.status{font-weight:700;border-radius:999px;padding:4px 8px;font-size:12px;display:inline-block}.st-draft{background:#e5e7eb;color:#111827}.st-wait{background:#fef3c7;color:#92400e}.st-ok{background:#dcfce7;color:#166534}.st-bad{background:#fee2e2;color:#991b1b}.st-corr{background:#ffedd5;color:#9a3412}.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}.table th,.table td{border:1px solid var(--border);padding:8px;text-align:left;vertical-align:middle}.table th{background:#f8fafc}
 #executorsBody td{padding:4px 6px}
@@ -828,6 +828,12 @@
 .fieldHelpPopup{position:fixed;left:12px;right:12px;bottom:12px;z-index:10001;background:#fff;border-radius:14px;padding:14px;box-shadow:0 10px 40px #0006;border:1px solid #cbd5e1;display:none}
 .fieldHelpPopup.open{display:block}
 @media(min-width:760px){.fieldHelpPopup{left:auto;right:24px;width:390px}}
+
+/* V7.4 - autenticação estável */
+.loginMessage{min-height:22px;margin-top:8px;font-size:13px;font-weight:700}
+.loginMessage.error{color:#b91c1c}
+.loginMessage.ok{color:#166534}
+.ownerBadge{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:800;margin-left:6px}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#001f8f">
@@ -839,8 +845,15 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-<header><h1>Relatórios de Manutenção — V7.3.1 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
-<div id="loginScreen" class="login card"><h2>Entrar</h2><p class="small">Informe seu usuário e senha para acessar o sistema.</p><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
+<header><h1>Relatórios de Manutenção — V7.4 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
+<div id="loginScreen" class="login card">
+<h2>Entrar</h2>
+<p class="small">Informe seu usuário e senha para acessar o sistema.</p>
+<label>Usuário</label><input id="loginUser" autocomplete="username">
+<label>Senha</label><input id="loginPass" type="password" autocomplete="current-password">
+<div id="loginMessage" class="loginMessage" aria-live="polite"></div>
+<br><button id="loginButton" type="button">Entrar</button>
+</div>
 <div id="app" class="container hidden">
 <div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
 <section id="tab-dashboard" class="tab card"><h2>Dashboard</h2><div class="kpiGrid"><div class="kpi"><div id="kpiMes" class="num">0</div><div class="txt">Relatórios do mês</div></div><div class="kpi"><div id="kpiPend" class="num">0</div><div class="txt">Aguardando aprovação</div></div><div class="kpi"><div id="kpiOk" class="num">0</div><div class="txt">Aprovados</div></div><div class="kpi"><div id="kpiEqp" class="num">0</div><div class="txt">Equipamentos</div></div></div></section>
@@ -1297,9 +1310,35 @@ function applyEquipmentIdConfig(){
 }
 
 const standardFields=[['tag','TAG'],['equipamento','Equipamento'],['area','Área / Sistema'],['fabricante','Fabricante'],['modelo','Modelo'],['serie','Nº de série'],['om','OM / OS'],['problemas','Problemas identificados'],['causas','Possíveis causas'],['acoes','Ações executadas'],['obs','Observações finais']];const moduleDefaults={equipamentos:true,aprovacao:true,qrcode:true,whatsapp:true,email:true,camposPorTipo:true};const moduleLabels={equipamentos:'Cadastro de equipamentos',aprovacao:'Aprovação eletrônica',qrcode:'QR Code',whatsapp:'Compartilhamento WhatsApp',email:'Compartilhamento E-mail',camposPorTipo:'Campos por tipo de relatório'};
-function init(){if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
+
+const OWNER_ACCOUNT={login:'proprietario',senha:'1234',nivel:'Proprietário',nome:'Proprietário do Sistema',matricula:'',cargo:'Proprietário',email:'',isOwner:true};
+function isFullAdmin(){return !!currentUser&&['Administrador','Proprietário'].includes(currentUser.nivel)}
+function setLoginMessage(text,type='error'){const el=$('loginMessage');if(!el)return;el.textContent=text||'';el.className='loginMessage '+(text?type:'')}
+function authenticateUser(loginValue,passwordValue){
+ const login=String(loginValue||'').trim(),senha=String(passwordValue||'');
+ if(login===OWNER_ACCOUNT.login&&senha===OWNER_ACCOUNT.senha)return {...OWNER_ACCOUNT};
+ return get('users',[]).find(x=>String(x.login||'').trim()===login&&String(x.senha||'')===senha)||null;
+}
+function installLoginHandlers(){
+ const btn=$('loginButton'),user=$('loginUser'),pass=$('loginPass');
+ if(btn&&!btn.dataset.bound){btn.addEventListener('click',login);btn.dataset.bound='1'}
+ [user,pass].forEach(el=>{if(el&&!el.dataset.enter){el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();login()}});el.dataset.enter='1'}})
+}
+
+function init(){installLoginHandlers();if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
  $('dataFim').value=todayISO();
- updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig();loadWorkflowConfig();updateSapStatus();setTimeout(installFieldHelp,0)}function login(){const u=get('users',[]).find(x=>x.login===$('loginUser').value.trim()&&x.senha===$('loginPass').value);if(!u){alert('Usuário ou senha inválidos');return}currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));openApp()}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=currentUser.nivel==='Administrador'?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
+ updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig();loadWorkflowConfig();updateSapStatus();setTimeout(installFieldHelp,0)}function login(){
+ try{
+  setLoginMessage('');
+  const user=$('loginUser'),pass=$('loginPass');
+  if(!user||!pass){setLoginMessage('Os campos de login não foram carregados.');return false}
+  if(!user.value.trim()||!pass.value){setLoginMessage('Preencha o usuário e a senha.');return false}
+  const u=authenticateUser(user.value,pass.value);
+  if(!u){setLoginMessage('Usuário ou senha inválidos.');pass.focus();pass.select();return false}
+  currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));
+  setLoginMessage('Acesso autorizado.','ok');openApp();return true;
+ }catch(err){console.error(err);setLoginMessage('Erro ao entrar: '+(err.message||err));return false}
+}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerHTML=`${safe(currentUser.nome)} - ${safe(currentUser.nivel)}${currentUser.isOwner?'<span class="ownerBadge">PROPRIETÁRIO</span>':''}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=isFullAdmin()?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
  currentEditingId=null;
  clearForm();
  if($('status')) $('status').value='Em elaboração';
@@ -1307,7 +1346,7 @@ function init(){if(!localStorage.getItem('users'))set('users',[{login:'admin',se
 }
 function logout(){sessionStorage.removeItem('currentUser');location.reload()}
 function changeMyPassword(){const nova=prompt('Digite a nova senha:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]),u=users.find(x=>x.login===currentUser.login);if(u){u.senha=nova;set('users',users);alert('Senha alterada com sucesso.')}}
-function resetUserPassword(i){if(currentUser.nivel!=='Administrador'){alert('Apenas administrador pode redefinir senha.');return}const nova=prompt('Nova senha para este usuário:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]);users[i].senha=nova;set('users',users);alert('Senha redefinida.')}
+function resetUserPassword(i){if(!isFullAdmin()){alert('Apenas administrador pode redefinir senha.');return}const nova=prompt('Nova senha para este usuário:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]);users[i].senha=nova;set('users',users);alert('Senha redefinida.')}
 function changeMyPassword(){
  const nova=prompt('Digite a nova senha:');
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
@@ -1315,7 +1354,7 @@ function changeMyPassword(){
  if(u){u.senha=nova;set('users',users);alert('Senha alterada com sucesso.')}
 }
 function resetUserPassword(i){
- if(currentUser.nivel!=='Administrador'){alert('Apenas administrador pode redefinir senha.');return}
+ if(!isFullAdmin()){alert('Apenas administrador pode redefinir senha.');return}
  const nova=prompt('Nova senha para este usuário:');
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
  let users=get('users',[]);
@@ -1721,18 +1760,18 @@ function updateReportStatus(id,status,motivo){
  alert('Status atualizado: '+status);
  if(status==='Aprovado'||status==='Reprovado') showTab('historico');
 }function approveReport(id){
- if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode aprovar.');return}
+ if(!['Gestor','Administrador','Proprietário'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode aprovar.');return}
  const r=get('reports',[]).find(x=>x.id===id);
  if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
  updateReportStatus(id,'Aprovado','');
 }function rejectReport(id){
- if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode reprovar.');return}
+ if(!['Gestor','Administrador','Proprietário'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode reprovar.');return}
  const r=get('reports',[]).find(x=>x.id===id);
  if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
  const m=prompt('Informe o motivo da reprovação:');if(m===null||!m.trim())return;
  updateReportStatus(id,'Reprovado',m);
 }function correctionReport(id){
- if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode solicitar correção.');return}
+ if(!['Gestor','Administrador','Proprietário'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode solicitar correção.');return}
  const r=get('reports',[]).find(x=>x.id===id);
  if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
  const m=prompt('Informe o que precisa ser corrigido:');if(m===null||!m.trim())return;
@@ -1773,7 +1812,7 @@ function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div cl
   <div class="pdfFinalBlock">
    <div class="pdfSignSection"><div class="pdfSectionTitle">Assinaturas</div><div class="pdfSignCards">${signCards}${managerCard}</div></div>
    ${approval}
-   <div class="pdfEndBlock">${qr}<div class="pdfFooter"><div>Gerado por Sistema de Relatórios de Manutenção</div><div>Relatório: ${safe(r.numero)} | Versão: 7.3.1 PWA | Emitido em: ${emitidoEm()}</div></div></div>
+   <div class="pdfEndBlock">${qr}<div class="pdfFooter"><div>Gerado por Sistema de Relatórios de Manutenção</div><div>Relatório: ${safe(r.numero)} | Versão: 7.4 PWA | Emitido em: ${emitidoEm()}</div></div></div>
   </div>
  </div>
  </div>`;
@@ -1984,10 +2023,10 @@ async function installPWA(){if(!deferredPwaPrompt){alert('Se o botão de instala
 function updatePwaStatus(){const el=document.getElementById('pwaStatus');if(!el)return;if(navigator.onLine){el.textContent='Online';el.classList.remove('offlineBadge')}else{el.textContent='Offline';el.classList.add('offlineBadge')}}
 window.addEventListener('online',updatePwaStatus);window.addEventListener('offline',updatePwaStatus);
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{});updatePwaStatus();});}
-function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','workflowConfig','equipmentIdConfig','equipments','reports','sapCatalogMeta'];const data={versao:'7.3.1 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','workflowConfig','equipmentIdConfig','equipments','reports','sapCatalogMeta'];const data={versao:'7.4 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function importBackup(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data.dados){alert('Arquivo de backup inválido.');return}if(!confirm('Importar este backup? Os dados atuais deste aparelho serão substituídos.'))return;Object.keys(data.dados).forEach(k=>set(k,data.dados[k]));alert('Backup importado com sucesso. O aplicativo será recarregado.');location.reload()}catch(err){alert('Erro ao importar backup: '+err.message)}};reader.readAsText(f);e.target.value=''}
 
-init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}
+installLoginHandlers();try{init()}catch(err){console.error('Erro de inicialização:',err);setLoginMessage('Erro ao iniciar o aplicativo. Atualize a página.','error')}const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}
 </script>
 </body>
 </html>
