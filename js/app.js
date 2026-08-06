@@ -1,108 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatórios de Manutenção - V7.4 PWA</title>
-<link rel="stylesheet" href="css/style.css">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#001f8f">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Relatórios Manutenção">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-</head>
-<body>
-<header><h1>Relatórios de Manutenção — V7.4 PWA</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
-<div id="loginScreen" class="login card">
-<h2>Entrar</h2>
-<p class="small">Informe seu usuário e senha para acessar o sistema.</p>
-<label>Usuário</label><input id="loginUser" autocomplete="username">
-<label>Senha</label><input id="loginPass" type="password" autocomplete="current-password">
-<div id="loginMessage" class="loginMessage" aria-live="polite"></div>
-<br><button id="loginButton" type="button">Entrar</button>
-</div>
-<div id="app" class="container hidden">
-<div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
-<section id="tab-dashboard" class="tab card"><h2>Dashboard</h2><div class="kpiGrid"><div class="kpi"><div id="kpiMes" class="num">0</div><div class="txt">Relatórios do mês</div></div><div class="kpi"><div id="kpiPend" class="num">0</div><div class="txt">Aguardando aprovação</div></div><div class="kpi"><div id="kpiOk" class="num">0</div><div class="txt">Aprovados</div></div><div class="kpi"><div id="kpiEqp" class="num">0</div><div class="txt">Equipamentos</div></div></div></section>
-<section id="tab-relatorio" class="tab card hidden"><h2>Novo Relatório <span id="executorBadge" class="badge"></span></h2><div id="correctionNotice" class="correctionNotice hidden"></div><div class="grid4"><div><label>Nº do relatório</label><input id="numero" readonly></div><div id="wrapPrefixo"><label>Prefixo / equipe</label><select id="reportPrefix" onchange="newReportNumber()"></select></div><div><label>Data início</label><input id="dataRelatorio" type="date"></div><div><label>Data fim</label><input id="dataFim" type="date"></div><div><label>Tipo de intervenção</label><select id="tipo" onchange="renderTypeFields()"><option>Preventiva</option><option>Corretiva</option><option>Preditiva</option><option>Inspeção</option><option>Teste</option><option>Emergencial</option></select></div><div id="wrapPrioridade"><label>Prioridade</label><select id="prioridade"><option>Baixa</option><option>Média</option><option>Alta</option><option>Crítica</option></select></div></div><h3>Equipamento</h3><div class="grid3"><div><label>Buscar equipamento</label><input id="equipSearch" list="equipList" placeholder="Digite TAG, número de série, código SAP ou descrição" oninput="suggestEquipmentSearch()" onchange="fillEquipmentFromSearch()"><datalist id="equipList"></datalist><div id="equipSearchHint" class="manualHint">Se não encontrar, continue preenchendo os dados manualmente.</div></div><div><label>Status</label><select id="status" disabled><option>Em elaboração</option><option>Aguardando aprovação</option><option>Correção solicitada</option><option>Aprovado</option><option>Reprovado</option><option>Concluído</option></select></div><div id="wrapAprovador"><label>Aprovador</label><select id="aprovador"></select></div></div><div class="grid3"><div id="wrapTag"><label>TAG</label><input id="tag"></div><div><label>Equipamento</label><input id="equipamento"></div><div><label>Área / Sistema</label><input id="area"></div><div><label>Fabricante</label><input id="fabricante"></div><div><label>Modelo</label><input id="modelo"></div><div id="wrapSerie"><label>Nº de série</label><input id="serie"></div><div id="wrapSap"><label>Código SAP</label><input id="codigoSap" oninput="fillDescriptionBySap()"></div><div id="wrapDescricao"><label>Descrição do equipamento</label><textarea id="descricaoEquip" placeholder="Preenchida automaticamente pelo SAP ou digitada manualmente"></textarea></div><div><label>OM / OS</label><input id="om"></div></div><h3>Executantes</h3><p class="small">Adicione os participantes. A assinatura fica na própria linha e abre em tela cheia.</p><button class="light" onclick="addExecutorRow()">➕ Adicionar executante</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Participante</th><th>Matrícula</th><th>Cargo</th><th>Assinatura</th><th></th></tr></thead><tbody id="executorsBody"></tbody></table></div><h3>Informações técnicas</h3><div id="typeFieldsArea"></div><label>Problemas identificados</label><textarea id="problemas"></textarea><label>Possíveis causas</label><textarea id="causas"></textarea><label>Ações executadas</label><textarea id="acoes"></textarea><label>Observações finais</label><textarea id="obs"></textarea><div id="customFieldsArea"></div><h3>Fotos com comentários</h3><input id="photoInput" type="file" accept="image/*" multiple onchange="addPhotos(event)"><div id="photoList" class="photo-grid"></div><br><div class="topActions"><button onclick="saveDraft()">Salvar rascunho</button><button id="submitApprovalBtn" class="warn" onclick="submitForApproval()">Enviar para aprovação</button><button class="secondary" onclick="generatePDF()">Gerar PDF / Imprimir</button><button class="light" onclick="sendEmail()">E-mail</button><button class="light" onclick="shareWhatsApp()">WhatsApp</button></div></section>
-<section id="tab-historico" class="tab card hidden"><h2>Histórico</h2><div class="statusQuickFilters"><button class="light" onclick="setHistoryStatusFilter('')">Todos</button><button class="light" onclick="setHistoryStatusFilter('Em elaboração')">Em elaboração</button><button class="light" onclick="setHistoryStatusFilter('Aguardando aprovação')">Aguardando aprovação</button><button class="light" onclick="setHistoryStatusFilter('Correção solicitada')">Correção solicitada</button><button class="light" onclick="setHistoryStatusFilter('Aprovado')">Aprovado</button><button class="light" onclick="setHistoryStatusFilter('Reprovado')">Reprovado</button></div><div class="grid3"><div><label>Pesquisar</label><input id="searchTerm" placeholder="Nº, TAG, equipamento, executante..." oninput="renderHistory()"></div><div><label>Status</label><select id="filterStatus" onchange="renderHistory()"><option value="">Todos</option><option>Em elaboração</option><option>Aguardando aprovação</option><option>Correção solicitada</option><option>Aprovado</option><option>Reprovado</option></select></div><div><label>Tipo</label><select id="filterType" onchange="renderHistory()"><option value="">Todos</option><option>Preventiva</option><option>Corretiva</option><option>Preditiva</option><option>Inspeção</option><option>Teste</option><option>Emergencial</option></select></div></div><br><div class="tableWrap"><table class="table"><thead><tr><th>Nº</th><th>Data</th><th>TAG</th><th>Equipamento</th><th>Executantes</th><th>Status</th><th>Ações</th></tr></thead><tbody id="historyBody"></tbody></table></div></section>
-<section id="tab-equipamentos" class="tab card hidden"><h2>Equipamentos</h2><div class="grid3"><div id="wrapEqTag"><label>TAG</label><input id="eqTag"></div><div><label>Nome do equipamento</label><input id="eqNome"></div><div><label>Área / Sistema</label><input id="eqArea"></div><div><label>Fabricante</label><input id="eqFabricante"></div><div><label>Modelo</label><input id="eqModelo"></div><div id="wrapEqSerie"><label>Nº de série</label><input id="eqSerie"></div><div id="wrapEqSap"><label>Código SAP</label><input id="eqSap"></div><div id="wrapEqDescricao"><label>Descrição completa</label><textarea id="eqDescricao"></textarea></div></div><br><button onclick="addEquipment()">Cadastrar equipamento</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>TAG</th><th>Nº série</th><th>Cód. SAP</th><th>Equipamento</th><th>Descrição</th><th>Área</th><th>QR Code</th><th></th></tr></thead><tbody id="equipBody"></tbody></table></div></section>
-<section id="tab-aprovacoes" class="tab card hidden"><h2>Aprovações Pendentes</h2><div id="approvalList"></div></section>
-<section id="tab-usuarios" class="tab card hidden"><h2>Usuários</h2><div class="grid3"><div><label>Login</label><input id="uLogin"></div><div><label>Senha</label><input id="uSenha" type="password"></div><div><label>Nível</label><select id="uNivel"><option>Executante</option><option>Gestor</option><option>Administrador</option></select></div><div><label>Nome</label><input id="uNome"></div><div><label>Matrícula</label><input id="uMatricula"></div><div><label>Cargo</label><input id="uCargo"></div><div><label>E-mail</label><input id="uEmail"></div></div><br><button onclick="addUser()">Adicionar usuário</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Login</th><th>Nome</th><th>Matrícula</th><th>Cargo</th><th>Nível</th><th>Ações</th></tr></thead><tbody id="usersBody"></tbody></table></div></section>
-<section id="tab-config" class="tab card hidden"><h2>Configurações</h2><div class="grid"><div><label>Nome da empresa</label><input id="empNome"></div><div><label>Setor / Oficina</label><input id="empSetor"></div><div><label>Endereço / Unidade</label><input id="empEndereco" placeholder="Opcional"></div><div><label>E-mail do gestor</label><input id="empEmail"></div><div><label>Responsável técnico / gestor</label><input id="empGestor"></div><div><label>Cargo / matrícula do gestor</label><input id="empGestorCargo"></div><div><label>Logo</label><input id="empLogoFile" type="file" accept="image/*" onchange="loadLogo(event)"><br><img id="empLogoPreview" class="logoPreview"></div></div><br><button onclick="saveCompany()">Salvar empresa</button><hr><h3>Módulos configuráveis</h3><div class="grid3" id="modulesArea"></div><br><button onclick="saveModules()">Salvar módulos</button><hr><h3>Campos obrigatórios padrão</h3><div id="requiredFieldsArea" class="grid3"></div><br><button onclick="saveRequiredFields()">Salvar obrigatórios</button><hr><h3>Campos personalizados</h3><div class="grid3"><div><label>Nome do campo</label><input id="cfNome" placeholder="Ex.: Materiais utilizados"></div><div><label>Tipo</label><select id="cfTipo"><option value="textarea">Texto longo</option><option value="text">Texto curto</option><option value="date">Data</option><option value="number">Número</option></select></div><div><label>Obrigatório?</label><select id="cfObrigatorio"><option value="nao">Não</option><option value="sim">Sim</option></select></div></div><br><button onclick="addCustomField()">Adicionar campo</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Campo</th><th>Tipo</th><th>Obrigatório</th><th></th></tr></thead><tbody id="customFieldsBody"></tbody></table></div>
 
-<hr><h3>Configuração do relatório</h3>
-<p class="small">Defina o comportamento do relatório conforme a realidade da empresa ou equipe.</p>
-<div class="workflowConfig">
-  <label class="configCheck"><input type="checkbox" id="cfgApprovalEnabled"> Usar aprovação eletrônica</label>
-  <label class="configCheck"><input type="checkbox" id="cfgSignatureRequired"> Assinatura obrigatória</label>
-  <label class="configCheck"><input type="checkbox" id="cfgPriorityEnabled"> Mostrar campo prioridade</label>
-</div>
-<div class="configPanel">
-  <label>Prefixos disponíveis para a numeração</label>
-  <input id="cfgPrefixes" placeholder="Ex.: RM, ELE, MEC, INS">
-  <p class="small">Separe por vírgula. Cada prefixo terá sua própria sequência mensal.</p>
-  <label>Marca d'água do PDF</label>
-  <select id="cfgWatermarkMode">
-    <option value="auto">Automática: status com aprovação / Área-Sistema sem aprovação</option>
-    <option value="status">Status do relatório</option>
-    <option value="area">Área / Sistema</option>
-    <option value="none">Sem marca d'água</option>
-  </select>
-</div>
-<br><button onclick="saveWorkflowConfig()">Salvar configuração do relatório</button>
-<hr><h3>Identificação de equipamentos</h3>
-<p class="small">Defina quais formas de identificação serão usadas no relatório.</p>
-<div class="equipIdConfig">
-<label><input type="checkbox" id="cfgBuscaTag"> Permitir busca por TAG</label>
-<label><input type="checkbox" id="cfgBuscaSerie"> Permitir busca por número de série</label>
-<label><input type="checkbox" id="cfgBuscaSap"> Permitir busca por código SAP</label>
-<label><input type="checkbox" id="cfgManual"> Permitir descrição manual</label>
-<label><input type="checkbox" id="cfgMostrarDescricao"> Mostrar campo descrição completa</label>
-</div><br><button onclick="saveEquipmentIdConfig()">Salvar identificação</button>
-
-<hr><h3>Base de códigos SAP</h3>
-<p class="small">Importe uma planilha Excel com código SAP e descrição longa. Os dados ficam neste dispositivo.</p>
-<div class="sapImportBox">
-<label>Planilha Excel</label><input id="sapExcelFile" type="file" accept=".xlsx,.xls">
-<div id="sapMappingArea" class="grid hidden" style="margin-top:10px">
-<div><label>Coluna do código SAP</label><select id="sapCodeColumn"></select></div>
-<div><label>Coluna da descrição longa</label><select id="sapDescriptionColumn"></select></div>
-</div>
-<progress id="sapImportProgress" class="sapProgress hidden" max="100" value="0"></progress>
-<div id="sapImportStatus" class="sapImportStatus">Nenhuma base SAP importada neste aparelho.</div>
-<div class="sapActions"><button id="sapImportButton" type="button" disabled>Importar base</button><button id="sapClearButton" class="danger" type="button">Limpar base SAP</button></div>
-</div>
-<hr><h3>Backup do aplicativo</h3>
-<p class="small">Use estas opções para salvar uma cópia dos relatórios, usuários, equipamentos e configurações deste aparelho.</p>
-<div class="backupActions">
-<button class="light" onclick="exportBackup()">Exportar backup</button>
-<label class="light" style="display:inline-flex;align-items:center;cursor:pointer;padding:10px 13px;border-radius:8px;font-weight:700">Importar backup
-<input type="file" accept="application/json" onchange="importBackup(event)" style="display:none"></label>
-</div>
-<div class="appInfo"><b>Versão:</b> 7.0 PWA<br><b>Banco:</b> Local neste aparelho<br><b>Modo:</b> Instalável / offline básico</div></section>
-<section id="printArea" class="card hidden"></section></div>
-
-<button class="helpFab" id="helpFab" type="button" aria-label="Abrir ajuda">?</button>
-<div id="helpOverlay" class="helpOverlay">
-  <div class="helpPanel">
-    <div class="helpHead"><h2>Como usar o aplicativo</h2><button class="light" id="closeHelpButton" type="button">Fechar</button></div>
-    <div class="helpSection"><h3>Novo relatório</h3><p>Escolha o prefixo, as datas, o tipo de intervenção e os dados do equipamento.</p></div>
-    <div class="helpSection"><h3>Equipamento</h3><p>Pesquise por TAG, número de série, código SAP, nome ou descrição. Se não encontrar, use o preenchimento manual quando habilitado.</p></div>
-    <div class="helpSection"><h3>Base SAP</h3><p>Importe uma planilha Excel. Depois, o código SAP preencherá a descrição longa. Não existe conexão direta com o SAP.</p></div>
-    <div class="helpSection"><h3>Fotos, assinaturas e PDF</h3><p>Adicione evidências, colete assinaturas e gere o PDF profissional no final.</p></div>
-    <p class="small">Os botões azuis com “?” explicam cada campo.</p>
-  </div>
-</div>
-<div id="fieldHelpPopup" class="fieldHelpPopup">
-  <b id="fieldHelpTitle"></b><p id="fieldHelpText"></p>
-  <button id="closeFieldHelpButton" type="button">Entendi</button>
-</div>
-
-<div id="signatureModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><b id="sigTitle">Assinatura</b><button class="light" onclick="closeSignatureModal()">Fechar</button></div><div class="modalBody"><canvas id="signatureCanvas"></canvas></div><div class="modalFoot"><button class="danger" onclick="clearModalSignature()">Limpar</button><button class="ok" onclick="saveModalSignature()">Salvar assinatura</button></div></div></div>
-<script>
 let currentEditingId=null;
 const $=id=>document.getElementById(id);let currentUser=null,photos=[],executors=[],activeSigIndex=null,modalDrawing=false;function get(k,d){return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}function set(k,v){localStorage.setItem(k,JSON.stringify(v))}function safe(v){return String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function uid(){return'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}function todayISO(){return new Date().toISOString().slice(0,10)}function brDate(d){if(!d)return'';let p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d}
 function statusKey(s){
@@ -215,9 +111,34 @@ function applyEquipmentIdConfig(){
 }
 
 const standardFields=[['tag','TAG'],['equipamento','Equipamento'],['area','Área / Sistema'],['fabricante','Fabricante'],['modelo','Modelo'],['serie','Nº de série'],['om','OM / OS'],['problemas','Problemas identificados'],['causas','Possíveis causas'],['acoes','Ações executadas'],['obs','Observações finais']];const moduleDefaults={equipamentos:true,aprovacao:true,qrcode:true,whatsapp:true,email:true,camposPorTipo:true};const moduleLabels={equipamentos:'Cadastro de equipamentos',aprovacao:'Aprovação eletrônica',qrcode:'QR Code',whatsapp:'Compartilhamento WhatsApp',email:'Compartilhamento E-mail',camposPorTipo:'Campos por tipo de relatório'};
-function init(){if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
+
+const OWNER_ACCOUNT={login:'proprietario',senha:'1234',nivel:'Proprietário',nome:'Proprietário do Sistema',matricula:'',cargo:'Proprietário',email:'',isOwner:true};
+function isFullAdmin(){return !!currentUser&&['Administrador','Proprietário'].includes(currentUser.nivel)}
+function setLoginMessage(text,type='error'){const el=$('loginMessage');if(!el)return;el.textContent=text||'';el.className='loginMessage '+(text?type:'')}
+function authenticateUser(loginValue,passwordValue){
+ const login=String(loginValue||'').trim(),senha=String(passwordValue||'');
+ if(login===OWNER_ACCOUNT.login&&senha===OWNER_ACCOUNT.senha)return {...OWNER_ACCOUNT};
+ return get('users',[]).find(x=>String(x.login||'').trim()===login&&String(x.senha||'')===senha)||null;
+}
+function installLoginHandlers(){
+ const button=$('loginButton'),user=$('loginUser'),password=$('loginPass');
+ if(button&&!button.dataset.bound){button.addEventListener('click',login);button.dataset.bound='1'}
+ [user,password].forEach(el=>{if(el&&!el.dataset.enterBound){el.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();login()}});el.dataset.enterBound='1'}})
+}
+
+function init(){installLoginHandlers();if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
  $('dataFim').value=todayISO();
- updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig();loadWorkflowConfig()}function login(){const u=get('users',[]).find(x=>x.login===$('loginUser').value.trim()&&x.senha===$('loginPass').value);if(!u){alert('Usuário ou senha inválidos');return}currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));openApp()}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=currentUser.nivel==='Administrador'?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
+ updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields();loadEquipmentIdConfig();loadWorkflowConfig()}function login(){
+ try{
+  setLoginMessage('');
+  const user=$('loginUser'),password=$('loginPass');
+  if(!user||!password){setLoginMessage('Não foi possível carregar os campos de login.');return false}
+  if(!user.value.trim()||!password.value){setLoginMessage('Preencha o usuário e a senha.');return false}
+  const authenticated=authenticateUser(user.value,password.value);
+  if(!authenticated){setLoginMessage('Usuário ou senha inválidos.');password.focus();password.select();return false}
+  currentUser=authenticated;sessionStorage.setItem('currentUser',JSON.stringify(authenticated));setLoginMessage('Acesso autorizado.','ok');openApp();return true;
+ }catch(error){console.error(error);setLoginMessage('Erro ao entrar: '+(error.message||error));return false}
+}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerHTML=`${safe(currentUser.nome)} - ${safe(currentUser.nivel)}${currentUser.isOwner?'<span class="ownerBadge">PROPRIETÁRIO</span>':''}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=isFullAdmin()?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();newReportNumber();showTab('dashboard')}function startNewReport(){
  currentEditingId=null;
  clearForm();
  if($('status')) $('status').value='Em elaboração';
@@ -225,7 +146,7 @@ function init(){if(!localStorage.getItem('users'))set('users',[{login:'admin',se
 }
 function logout(){sessionStorage.removeItem('currentUser');location.reload()}
 function changeMyPassword(){const nova=prompt('Digite a nova senha:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]),u=users.find(x=>x.login===currentUser.login);if(u){u.senha=nova;set('users',users);alert('Senha alterada com sucesso.')}}
-function resetUserPassword(i){if(currentUser.nivel!=='Administrador'){alert('Apenas administrador pode redefinir senha.');return}const nova=prompt('Nova senha para este usuário:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]);users[i].senha=nova;set('users',users);alert('Senha redefinida.')}
+function resetUserPassword(i){if(!isFullAdmin()){alert('Apenas administrador pode redefinir senha.');return}const nova=prompt('Nova senha para este usuário:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]);users[i].senha=nova;set('users',users);alert('Senha redefinida.')}
 function changeMyPassword(){
  const nova=prompt('Digite a nova senha:');
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
@@ -233,7 +154,7 @@ function changeMyPassword(){
  if(u){u.senha=nova;set('users',users);alert('Senha alterada com sucesso.')}
 }
 function resetUserPassword(i){
- if(currentUser.nivel!=='Administrador'){alert('Apenas administrador pode redefinir senha.');return}
+ if(!isFullAdmin()){alert('Apenas administrador pode redefinir senha.');return}
  const nova=prompt('Nova senha para este usuário:');
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
  let users=get('users',[]);
@@ -302,16 +223,17 @@ function suggestEquipmentSearch(){
  const matches=get('equipments',[]).filter(x=>(c.tag&&normalizeSearch(x.tag).includes(v))||(c.serie&&normalizeSearch(x.serie).includes(v))||(c.sap&&normalizeSearch(x.codigoSap).includes(v))||normalizeSearch(x.nome).includes(v)||(c.descricao&&normalizeSearch(x.descricao).includes(v))).slice(0,20);
  if($('equipList'))$('equipList').innerHTML=matches.map(x=>`<option value="${safe(x.tag||x.serie||x.codigoSap||x.nome||x.descricao)}">${safe(x.nome||x.descricao||'')}</option>`).join('');
 }
-function fillEquipmentFromSearch(){
- const e=findEquipmentByAny($('equipSearch')?.value),c=getEquipmentIdConfig();
- if(!e){if(!c.manual&&($('equipSearch')?.value||'').trim())alert('Equipamento não encontrado. O preenchimento manual está desativado.');return}
- if($('tag'))$('tag').value=e.tag||'';if($('equipamento'))$('equipamento').value=e.nome||'';if($('area'))$('area').value=e.area||'';
- if($('fabricante'))$('fabricante').value=e.fabricante||'';if($('modelo'))$('modelo').value=e.modelo||'';if($('serie'))$('serie').value=e.serie||'';
- if($('codigoSap'))$('codigoSap').value=e.codigoSap||'';if($('descricaoEquip'))$('descricaoEquip').value=e.descricao||'';
+async function fillEquipmentFromSearch(){
+ const searchValue=$('equipSearch')?.value||'',equipment=findEquipmentByAny(searchValue),config=getEquipmentIdConfig();
+ if(equipment){if($('tag'))$('tag').value=equipment.tag||'';if($('equipamento'))$('equipamento').value=equipment.nome||'';if($('area'))$('area').value=equipment.area||'';if($('fabricante'))$('fabricante').value=equipment.fabricante||'';if($('modelo'))$('modelo').value=equipment.modelo||'';if($('serie'))$('serie').value=equipment.serie||'';if($('codigoSap'))$('codigoSap').value=equipment.codigoSap||'';if($('descricaoEquip'))$('descricaoEquip').value=equipment.descricao||'';return}
+ if(config.sap){try{const item=await getSapDescription(searchValue);if(item){if($('codigoSap'))$('codigoSap').value=item.codigo;if($('descricaoEquip'))$('descricaoEquip').value=item.descricao;return}}catch(error){console.warn(error)}}
+ if(!config.manual&&searchValue.trim())alert('Equipamento ou código SAP não encontrado.')
 }
-function fillDescriptionBySap(){
- const sap=normalizeSearch($('codigoSap')?.value);if(!sap)return;const e=get('equipments',[]).find(x=>normalizeSearch(x.codigoSap)===sap);
- if(e){if($('descricaoEquip'))$('descricaoEquip').value=e.descricao||e.nome||'';if($('equipamento')&&!$('equipamento').value)$('equipamento').value=e.nome||''}
+async function fillDescriptionBySap(){
+ const sap=String($('codigoSap')?.value||'').trim().replace(/\.0$/,'');if(!sap)return;
+ const equipment=get('equipments',[]).find(item=>String(item.codigoSap||'').trim()===sap);
+ if(equipment){if($('descricaoEquip'))$('descricaoEquip').value=equipment.descricao||equipment.nome||'';return}
+ try{const item=await getSapDescription(sap);if(item&&$('descricaoEquip'))$('descricaoEquip').value=item.descricao||''}catch(error){console.warn(error)}
 }
 function fillEquipment(){fillEquipmentFromSearch()}function addExecutorRow(){executors.push({login:'',nome:'',matricula:'',cargo:'',assinatura:''});renderExecutors()}function renderExecutors(){const users=get('users',[]);$('executorsBody').innerHTML=executors.map((e,i)=>`<tr><td><select onchange="selectExecutor(${i},this.value)"><option value="">Selecionar</option>${users.map(u=>`<option value="${safe(u.login)}" ${e.login===u.login?'selected':''}>${safe(u.nome)}</option>`).join('')}</select></td><td><input value="${safe(e.matricula||'')}" oninput="executors[${i}].matricula=this.value"></td><td><input value="${safe(e.cargo||'')}" oninput="executors[${i}].cargo=this.value"></td><td>${e.assinatura?`<img class="sigThumb" src="${e.assinatura}"> <button class="smallBtn ok" onclick="openSignatureModal(${i})">Assinado</button>`:`<button class="smallBtn light" onclick="openSignatureModal(${i})">✍️ Assinar</button>`}</td><td><button class="smallBtn danger" onclick="removeExecutor(${i})">Remover</button></td></tr>`).join('')}function selectExecutor(i,login){const u=get('users',[]).find(x=>x.login===login);executors[i].login=login;if(u){executors[i].nome=u.nome;executors[i].matricula=u.matricula||'';executors[i].cargo=u.cargo||''}renderExecutors()}function removeExecutor(i){executors.splice(i,1);renderExecutors()}function openSignatureModal(i){activeSigIndex=i;$('sigTitle').innerText='Assinatura - '+(executors[i].nome||'Executante')+' (pode virar o celular de lado)';$('signatureModal').classList.remove('hidden');setupSignatureCanvas(executors[i].assinatura)}function closeSignatureModal(){$('signatureModal').classList.add('hidden');activeSigIndex=null}function setupSignatureCanvas(data){
  const c=$('signatureCanvas'),ctx=c.getContext('2d');
@@ -612,18 +534,18 @@ function updateReportStatus(id,status,motivo){
  alert('Status atualizado: '+status);
  if(status==='Aprovado'||status==='Reprovado') showTab('historico');
 }function approveReport(id){
- if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode aprovar.');return}
+ if(!['Gestor','Administrador','Proprietário'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode aprovar.');return}
  const r=get('reports',[]).find(x=>x.id===id);
  if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
  updateReportStatus(id,'Aprovado','');
 }function rejectReport(id){
- if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode reprovar.');return}
+ if(!['Gestor','Administrador','Proprietário'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode reprovar.');return}
  const r=get('reports',[]).find(x=>x.id===id);
  if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
  const m=prompt('Informe o motivo da reprovação:');if(m===null||!m.trim())return;
  updateReportStatus(id,'Reprovado',m);
 }function correctionReport(id){
- if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode solicitar correção.');return}
+ if(!['Gestor','Administrador','Proprietário'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode solicitar correção.');return}
  const r=get('reports',[]).find(x=>x.id===id);
  if(currentUser.nivel==='Gestor'&&r?.aprovador?.login!==currentUser.login){alert('Este relatório foi destinado a outro aprovador.');return}
  const m=prompt('Informe o que precisa ser corrigido:');if(m===null||!m.trim())return;
@@ -865,15 +787,7 @@ async function installPWA(){if(!deferredPwaPrompt){alert('Se o botão de instala
 function updatePwaStatus(){const el=document.getElementById('pwaStatus');if(!el)return;if(navigator.onLine){el.textContent='Online';el.classList.remove('offlineBadge')}else{el.textContent='Offline';el.classList.add('offlineBadge')}}
 window.addEventListener('online',updatePwaStatus);window.addEventListener('offline',updatePwaStatus);
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{});updatePwaStatus();});}
-function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','workflowConfig','equipmentIdConfig','equipments','reports'];const data={versao:'7.2 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function exportBackup(){const keys=['users','company','customFields','requiredFields','modules','workflowConfig','equipmentIdConfig','equipments','reports','sapCatalogMeta'];const data={versao:'7.4 PWA',exportadoEm:new Date().toISOString(),dados:{}};keys.forEach(k=>data.dados[k]=get(k,[]));const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup_relatorios_manutencao_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function importBackup(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data.dados){alert('Arquivo de backup inválido.');return}if(!confirm('Importar este backup? Os dados atuais deste aparelho serão substituídos.'))return;Object.keys(data.dados).forEach(k=>set(k,data.dados[k]));alert('Backup importado com sucesso. O aplicativo será recarregado.');location.reload()}catch(err){alert('Erro ao importar backup: '+err.message)}};reader.readAsText(f);e.target.value=''}
 
-init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="js/help.js"></script>
-<script src="js/sap.js"></script>
-<script src="js/app.js"></script>
-</body>
-</html>
+installLoginHandlers();try{init();updateSapStatus();installFieldHelp();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}}catch(error){console.error(error);setLoginMessage('Erro ao iniciar o aplicativo. Atualize a página.','error')}
