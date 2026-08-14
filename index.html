@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Relatórios de Manutenção - V8.6</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header><h1>Gerador de Relatórios de Manutenção — V8.6</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
+<div id="loginScreen" class="login card"><h2>Entrar</h2><p class="small">Usuário inicial: <b>admin</b> | Senha: <b>1234</b></p><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
+<div id="app" class="container hidden">
+<div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
+<section id="tab-dashboard" class="tab card"><h2>Dashboard</h2><div class="kpiGrid"><div class="kpi"><div id="kpiMes" class="num">0</div><div class="txt">Relatórios do mês</div></div><div class="kpi"><div id="kpiPend" class="num">0</div><div class="txt">Aguardando aprovação</div></div><div class="kpi"><div id="kpiOk" class="num">0</div><div class="txt">Aprovados</div></div><div class="kpi"><div id="kpiEqp" class="num">0</div><div class="txt">Equipamentos</div></div></div></section>
+<section id="tab-relatorio" class="tab card hidden"><h2>Novo Relatório <span id="executorBadge" class="badge"></span></h2><div id="correctionNotice" class="correctionNotice hidden"></div><div class="grid4"><div><label>Nº do relatório</label><input id="numero" readonly></div><div><label>Data início</label><input id="dataRelatorio" type="date"></div><div><label>Data fim</label><input id="dataFim" type="date"></div><div><label>Tipo de intervenção</label><select id="tipo" onchange="renderTypeFields()"><option>Preventiva</option><option>Corretiva</option><option>Preditiva</option><option>Inspeção</option><option>Teste</option><option>Emergencial</option></select></div><div id="priorityField"><label>Prioridade</label><select id="prioridade"><option>Baixa</option><option>Média</option><option>Alta</option><option>Crítica</option></select></div></div><h3>Equipamento</h3><div class="grid3"><div class="equipmentSearchBox">
+<label>Localizar equipamento por TAG ou Nº de série</label>
+<input id="equipSearch" list="equipList" placeholder="Digite a TAG ou o número de série" autocomplete="off" oninput="searchEquipmentHistory()" onchange="fillEquipmentFromSearch()">
+<datalist id="equipList"></datalist>
+<div id="equipmentMatchInfo" class="equipmentMatchInfo hidden"></div>
+</div><div id="statusField"><label>Status</label><select id="status" disabled><option>Em elaboração</option><option>Aguardando aprovação</option><option>Correção solicitada</option><option>Aprovado</option><option>Reprovado</option></select></div>
+<div id="approverField"><label>Aprovador</label><select id="aprovador"><option value="">Selecione o aprovador</option></select></div>
+</div><div class="grid3">
+<div><label>TAG</label><input id="tag"></div>
+<div><label>Equipamento</label><input id="equipamento"></div>
+<div><label>Área / Sistema</label><input id="area"></div>
+<div><label>Fabricante</label><input id="fabricante"></div>
+<div><label>Modelo</label><input id="modelo"></div>
+<div><label>Nº de série</label><input id="serie"></div>
+<div id="sapCodeField" class="sapOptional"><label>Código SAP</label><input id="codigoSap" autocomplete="off" placeholder="Digite o código" oninput="lookupSapDescription()"></div>
+<div id="sapDescriptionField" class="sapOptional"><label>Descrição longa</label><textarea id="descricaoLonga" placeholder="Preenchida automaticamente pela planilha ou manualmente"></textarea></div>
+<div><label>OM / OS</label><input id="om"></div>
+</div><h3>Executantes</h3><p class="small">Adicione os participantes. A assinatura fica na própria linha e abre em tela cheia.</p><button class="light" onclick="addExecutorRow()">➕ Adicionar executante</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Participante</th><th>Matrícula</th><th>Cargo</th><th>Assinatura</th><th></th></tr></thead><tbody id="executorsBody"></tbody></table></div><h3>Informações técnicas</h3><div id="typeFieldsArea"></div><label>Problemas identificados</label><textarea id="problemas"></textarea><label>Possíveis causas</label><textarea id="causas"></textarea><label>Ações executadas</label><textarea id="acoes"></textarea><label>Observações finais</label><textarea id="obs"></textarea><div id="customFieldsArea"></div><h3>Fotos com comentários</h3><input id="photoInput" type="file" accept="image/*" multiple onchange="addPhotos(event)"><div id="photoList" class="photo-grid"></div><br><div class="topActions"><button onclick="saveDraft()">Salvar rascunho</button><button id="submitApprovalButton" class="warn" onclick="submitForApproval()">Enviar para aprovação</button><button class="secondary" onclick="generatePDF()">Gerar PDF / Imprimir</button><button class="light" onclick="sendEmail()">E-mail</button><button class="light" onclick="shareWhatsApp()">WhatsApp</button></div></section>
+<section id="tab-historico" class="tab card hidden"><h2>Histórico</h2><div class="statusQuickFilters"><button class="light" onclick="setHistoryStatusFilter('')">Todos</button><button class="light" onclick="setHistoryStatusFilter('Em elaboração')">Em elaboração</button><button class="light" onclick="setHistoryStatusFilter('Aguardando aprovação')">Aguardando aprovação</button><button class="light" onclick="setHistoryStatusFilter('Correção solicitada')">Correção solicitada</button><button class="light" onclick="setHistoryStatusFilter('Aprovado')">Aprovado</button><button class="light" onclick="setHistoryStatusFilter('Reprovado')">Reprovado</button></div><div class="grid3"><div><label>Pesquisar</label><input id="searchTerm" placeholder="Nº do relatório, TAG, nº de série, equipamento ou executante..." oninput="renderHistory()"></div><div><label>Status</label><select id="filterStatus" onchange="renderHistory()"><option value="">Todos</option><option>Em elaboração</option><option>Aguardando aprovação</option><option>Correção solicitada</option><option>Aprovado</option><option>Reprovado</option></select></div><div><label>Tipo</label><select id="filterType" onchange="renderHistory()"><option value="">Todos</option><option>Preventiva</option><option>Corretiva</option><option>Preditiva</option><option>Inspeção</option><option>Teste</option><option>Emergencial</option></select></div></div><br><div class="tableWrap"><table class="table"><thead><tr><th>Nº</th><th>Data</th><th>TAG</th><th>Equipamento</th><th>Executantes</th><th>Status</th><th>Ações</th></tr></thead><tbody id="historyBody"></tbody></table></div></section>
+<section id="tab-equipamentos" class="tab card hidden"><h2>Equipamentos</h2><div class="grid3">
+<div><label>TAG</label><input id="eqTag"></div>
+<div><label>Nome do equipamento</label><input id="eqNome"></div>
+<div><label>Área / Sistema</label><input id="eqArea"></div>
+<div><label>Fabricante</label><input id="eqFabricante"></div>
+<div><label>Modelo</label><input id="eqModelo"></div>
+<div><label>Nº de série</label><input id="eqSerie"></div>
+<div id="eqSapCodeField" class="sapOptional"><label>Código SAP</label><input id="eqSap" autocomplete="off" placeholder="Opcional" oninput="lookupEquipmentSapDescription()"></div>
+<div id="eqSapDescriptionField" class="sapOptional"><label>Descrição longa</label><textarea id="eqDescricaoLonga" placeholder="Preenchida pela base Excel ou manualmente"></textarea></div>
+</div><br><button onclick="addEquipment()">Cadastrar equipamento</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>TAG</th><th>Nº série</th><th>Equipamento</th><th>Área</th><th>Fabricante</th><th>Modelo</th><th>QR Code</th><th></th></tr></thead><tbody id="equipBody"></tbody></table></div></section>
+<section id="tab-aprovacoes" class="tab card hidden"><h2>Aprovações Pendentes</h2><div id="approvalList"></div></section>
+<section id="tab-usuarios" class="tab card hidden"><h2>Usuários</h2><div class="grid3"><div><label>Login</label><input id="uLogin"></div><div><label>Senha</label><input id="uSenha" type="password"></div><div><label>Nível</label><select id="uNivel"><option>Executante</option><option>Gestor</option><option>Administrador</option></select></div><div><label>Nome</label><input id="uNome"></div><div><label>Matrícula</label><input id="uMatricula"></div><div><label>Cargo</label><input id="uCargo"></div><div><label>E-mail</label><input id="uEmail"></div></div><br><button onclick="addUser()">Adicionar usuário</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Login</th><th>Nome</th><th>Matrícula</th><th>Cargo</th><th>Nível</th><th>Ações</th></tr></thead><tbody id="usersBody"></tbody></table></div></section>
+<section id="tab-config" class="tab card hidden"><h2>Configurações</h2><div class="configHelpBanner"><b>Ajuda para configurar:</b> use os botões <b>?</b> ao lado dos campos ou o botão azul no canto inferior da tela.</div><div class="grid"><div><label>Nome da empresa</label><input id="empNome"></div><div><label>Setor / Oficina</label><input id="empSetor"></div><div><label>Endereço / Unidade</label><input id="empEndereco" placeholder="Opcional"></div><div><label>E-mail do gestor</label><input id="empEmail"></div><div><label>Responsável técnico / gestor</label><input id="empGestor"></div><div><label>Cargo / matrícula do gestor</label><input id="empGestorCargo"></div><div><label>Logo</label><input id="empLogoFile" type="file" accept="image/*" onchange="loadLogo(event)"><br><img id="empLogoPreview" class="logoPreview"></div></div><br><button onclick="saveCompany()">Salvar empresa</button><hr><h3>Módulos configuráveis</h3><div class="grid3" id="modulesArea"></div><br><button onclick="saveModules()">Salvar módulos</button>
+
+<hr>
+<h3>Numeração dos relatórios</h3>
+<p class="small">O administrador define livremente o prefixo e o formato. Não existe lista de prefixos pré-definidos.</p>
+<div class="grid3 numberingConfig">
+  <div>
+    <label>Prefixo</label>
+    <input id="cfgReportPrefix" maxlength="20" placeholder="Digite as iniciais que desejar">
+    <div class="small">Exemplos apenas ilustrativos: RM, ELE, MEC, CAL, PS2. Você pode usar outras iniciais.</div>
+  </div>
+  <div>
+    <label>Modelo da numeração</label>
+    <input id="cfgNumberTemplate" placeholder="{PREFIXO}-{AA}{MM}-{SEQ}">
+    <div class="small">Use: {PREFIXO}, {AA}, {AAAA}, {MM} e {SEQ}.</div>
+  </div>
+  <div>
+    <label>Dígitos da sequência</label>
+    <input id="cfgSequenceDigits" type="number" min="1" max="8" value="3">
+    <div class="small">3 = 001 | 4 = 0001 | 6 = 000001</div>
+  </div>
+</div>
+<div id="numberingPreview" class="numberingPreview"></div>
+<br><button onclick="saveNumberingConfig()">Salvar numeração</button>
+<hr>
+<h3>Fluxo, status e marca d'água</h3>
+<p class="small">Defina como o status, a aprovação e a marca d'água serão usados nos relatórios.</p>
+<div class="grid3">
+  <label class="moduleItem"><input type="checkbox" id="cfgShowStatus"> Mostrar status no formulário e no PDF</label>
+  <label class="moduleItem"><input type="checkbox" id="cfgApprovalEnabled"> Usar aprovação eletrônica</label>
+  <label class="moduleItem"><input type="checkbox" id="cfgApproverRequired"> Exigir seleção do aprovador</label>
+  <label class="moduleItem"><input type="checkbox" id="cfgShowPriority"> Mostrar campo prioridade</label>
+  <div>
+    <label>Marca d'água do PDF</label>
+    <select id="cfgWatermarkMode">
+      <option value="status">Status do relatório</option>
+      <option value="area">Área / Sistema</option>
+      <option value="sector">Setor / Oficina</option>
+      <option value="none">Sem marca d'água</option>
+    </select>
+  </div>
+</div>
+<br>
+<button onclick="saveWorkflowConfig()">Salvar fluxo e marca d'água</button>
+
+<hr>
+<h3>Base Excel — Código SAP e Descrição Longa</h3>
+<p class="small">Recurso opcional. Não há integração com o SAP: o aplicativo consulta somente a planilha Excel importada.</p>
+<label class="moduleItem"><input type="checkbox" id="cfgSapEnabled"> Usar Código SAP e Descrição Longa nos relatórios</label>
+<div class="sapImportPanel">
+  <div class="grid3">
+    <div><label>Planilha Excel</label><input id="sapExcelFile" type="file" accept=".xlsx,.xls" onchange="previewSapWorkbook(event)"></div>
+    <div><label>Aba da planilha</label><select id="sapSheetSelect" onchange="prepareSapSheetMapping()"></select></div>
+    <div><label>Atualização</label><select id="sapImportMode"><option value="replace">Substituir base anterior</option><option value="merge">Adicionar/atualizar códigos</option></select></div>
+  </div>
+  <div id="sapMappingPanel" class="grid3 hidden">
+    <div><label>Coluna do Código SAP</label><select id="sapCodeColumn"></select></div>
+    <div><label>Coluna da Descrição Longa</label><select id="sapDescriptionColumn"></select></div>
+    <div><label>Linha do cabeçalho</label><input id="sapHeaderRow" type="number" min="1" value="2" onchange="prepareSapSheetMapping()"></div>
+  </div>
+  <progress id="sapImportProgress" class="sapProgress hidden" max="100" value="0"></progress>
+  <div id="sapImportStatus" class="sapImportStatus">Nenhuma base importada neste dispositivo.</div>
+  <div class="topActions" style="margin-top:10px">
+    <button id="sapImportButton" onclick="importSapWorkbook()" disabled>Importar planilha</button>
+    <button class="danger" onclick="clearSapCatalog()">Limpar base importada</button>
+  </div>
+</div>
+<br><button onclick="saveSapConfig()">Salvar configuração SAP</button>
+<hr><h3>Campos obrigatórios padrão</h3><div id="requiredFieldsArea" class="grid3"></div><br><button onclick="saveRequiredFields()">Salvar obrigatórios</button><hr><h3>Campos personalizados</h3><div class="grid3"><div><label>Nome do campo</label><input id="cfNome" placeholder="Ex.: Materiais utilizados"></div><div><label>Tipo</label><select id="cfTipo"><option value="textarea">Texto longo</option><option value="text">Texto curto</option><option value="date">Data</option><option value="number">Número</option></select></div><div><label>Obrigatório?</label><select id="cfObrigatorio"><option value="nao">Não</option><option value="sim">Sim</option></select></div></div><br><button onclick="addCustomField()">Adicionar campo</button><br><br><div class="tableWrap"><table class="table"><thead><tr><th>Campo</th><th>Tipo</th><th>Obrigatório</th><th></th></tr></thead><tbody id="customFieldsBody"></tbody></table></div></section>
+<section id="printArea" class="card hidden"></section></div>
+<div id="signatureModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><b id="sigTitle">Assinatura</b><button class="light" onclick="closeSignatureModal()">Fechar</button></div><div class="modalBody"><canvas id="signatureCanvas"></canvas></div><div class="modalFoot"><button class="danger" onclick="clearModalSignature()">Limpar</button><button class="ok" onclick="saveModalSignature()">Salvar assinatura</button></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/pdf-styles.js"></script>
+<script src="js/help.js"></script>
+<script src="js/app.js"></script>
+
+<button id="helpFab" class="helpFab" type="button" title="Ajuda">?</button>
+<div id="helpOverlay" class="helpOverlay hidden">
+  <div class="helpPanel">
+    <div class="helpHeader">
+      <div><h2>Ajuda do aplicativo</h2><p class="small">Orientações de uso e principalmente de configuração.</p></div>
+      <button id="helpCloseBtn" class="light" type="button">Fechar</button>
+    </div>
+    <div class="helpTabs">
+      <button type="button" data-help-tab="config" class="helpTab active">Configuração</button>
+      <button type="button" data-help-tab="relatorio" class="helpTab">Relatório</button>
+      <button type="button" data-help-tab="equipamentos" class="helpTab">Equipamentos</button>
+      <button type="button" data-help-tab="usuarios" class="helpTab">Usuários e aprovação</button>
+      <button type="button" data-help-tab="sap" class="helpTab">Planilha SAP</button>
+    </div>
+
+    <div id="help-content-config" class="helpContent">
+      <div class="helpIntro"><b>Por onde começar</b><p>Antes de usar o aplicativo, entre em <b>Configurações</b> e revise empresa, numeração, fluxo, campos obrigatórios, módulos, SAP e backup.</p></div>
+      <div class="helpSection"><h3>Dados da empresa</h3><p><b>Nome:</b> aparece no cabeçalho do PDF.</p><p><b>Setor/Oficina:</b> identifica a equipe e pode ser usado na marca d'água.</p><p><b>Gestor:</b> responsável técnico padrão, quando aplicável.</p><p><b>Logo:</b> use uma imagem limpa e de boa resolução.</p></div>
+      <div class="helpSection"><h3>Numeração</h3><p><b>Prefixo:</b> o administrador digita livremente as iniciais que quiser.</p><p><b>Modelo:</b> use {PREFIXO}, {AA}, {AAAA}, {MM} e {SEQ}.</p><p><b>Sequência:</b> cada prefixo mantém sua própria contagem.</p></div>
+      <div class="helpSection"><h3>Fluxo, status e marca d'água</h3><p><b>Status:</b> pode aparecer ou não.</p><p><b>Aprovação eletrônica:</b> ative quando existir aprovador.</p><p><b>Aprovador obrigatório:</b> exige seleção antes de finalizar.</p><p><b>Prioridade:</b> pode ser exibida ou ocultada.</p><p><b>Marca d'água:</b> Status, Área/Sistema, Setor/Oficina ou nenhuma.</p></div>
+      <div class="helpSection"><h3>Campos obrigatórios</h3><p>Marque somente os campos realmente necessários. Mais obrigatoriedade aumenta o controle, mas também o tempo de preenchimento.</p></div>
+      <div class="helpSection"><h3>Campos personalizados</h3><p>Crie campos específicos de cada empresa ou equipe sem alterar o código do aplicativo.</p></div>
+      <div class="helpSection"><h3>Módulos</h3><p>Desative funções que a empresa não usa para deixar o aplicativo mais simples.</p></div>
+      <div class="helpSection"><h3>Código SAP e Descrição Longa</h3><p>É opcional. Não existe integração direta com SAP. A planilha serve somente como base de consulta.</p><p>A localização do equipamento continua por <b>TAG</b> ou <b>Nº de série</b>.</p></div>
+      <div class="helpSection"><h3>Backup</h3><p>Faça backup antes de atualizações, troca de aparelho ou alterações importantes. A base Excel grande deve ser reimportada em outro dispositivo.</p></div>
+    </div>
+
+    <div id="help-content-relatorio" class="helpContent hidden">
+      <div class="helpSection"><h3>TAG e Nº de série</h3><p>São as chaves de localização do equipamento. Uma TAG pode ter sido usada por equipamentos diferentes.</p></div>
+      <div class="helpSection"><h3>Problemas identificados</h3><p>Descreva defeitos, sintomas e condições encontradas.</p></div>
+      <div class="helpSection"><h3>Possíveis causas</h3><p>Registre a causa provável ou confirmada.</p></div>
+      <div class="helpSection"><h3>Ações executadas</h3><p>Informe serviços, ajustes, substituições, medições e testes.</p></div>
+      <div class="helpSection"><h3>Observações finais</h3><p>Informe condição de entrega, pendências e recomendações.</p></div>
+    </div>
+
+    <div id="help-content-equipamentos" class="helpContent hidden">
+      <div class="helpSection"><h3>Cadastro</h3><p>Cadastre TAG, nome, área, fabricante, modelo e Nº de série quando disponíveis.</p></div>
+      <div class="helpSection"><h3>TAG reutilizada</h3><p>Vários equipamentos podem ter utilizado a mesma TAG. O aplicativo mostra as opções encontradas.</p></div>
+      <div class="helpSection"><h3>Nº de série</h3><p>Quando informado, não deve ser duplicado.</p></div>
+      <div class="helpSection"><h3>Histórico</h3><p>Pesquise por número do relatório, TAG, Nº de série ou equipamento.</p></div>
+    </div>
+
+    <div id="help-content-usuarios" class="helpContent hidden">
+      <div class="helpSection"><h3>Administrador</h3><p>Configura o aplicativo e gerencia usuários.</p></div>
+      <div class="helpSection"><h3>Gestor/Aprovador</h3><p>Quando a aprovação está habilitada, recebe os relatórios destinados a ele.</p></div>
+      <div class="helpSection"><h3>Executante</h3><p>Profissional responsável pela atividade e assinatura, quando exigida.</p></div>
+    </div>
+
+    <div id="help-content-sap" class="helpContent hidden">
+      <div class="helpSection"><h3>Importação</h3><p>O aplicativo tenta reconhecer automaticamente BASE GERAL, Material e Descrição Longa.</p></div>
+      <div class="helpSection"><h3>Substituir ou atualizar</h3><p><b>Substituir:</b> apaga a base anterior.</p><p><b>Adicionar/atualizar:</b> mantém os códigos existentes e atualiza os encontrados.</p></div>
+      <div class="helpSection"><h3>Importante</h3><p>Código SAP não substitui TAG ou Nº de série. É apenas uma consulta auxiliar.</p></div>
+    </div>
+  </div>
+</div>
+<div id="fieldHelpPopup" class="fieldHelpPopup hidden">
+  <div class="fieldHelpHead"><b id="fieldHelpTitle"></b><button id="fieldHelpClose" type="button" class="light">Fechar</button></div>
+  <div id="fieldHelpText"></div>
+</div>
+
+</body>
+</html>
