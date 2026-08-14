@@ -841,3 +841,11 @@
 .fieldHelpPopup{position:fixed;right:18px;bottom:82px;z-index:10005;width:min(420px,calc(100vw - 24px));background:#fff;border:1px solid #cbd5e1;border-radius:14px;box-shadow:0 12px 45px #0005;padding:14px}.fieldHelpPopup.hidden{display:none!important}.fieldHelpHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.fieldHelpHead b{color:#001f8f}
 .configHelpBanner{margin:8px 0 16px;padding:10px 12px;border-left:4px solid #001f8f;background:#eef3ff;border-radius:8px;color:#1e3a8a;font-size:13px}
 @media(max-width:700px){.helpPanel{padding:13px}.helpTabs button{flex:1 1 130px}.fieldHelpPopup{left:12px;right:12px;width:auto}}
+
+/* V8.7 — orientação de campos obrigatórios */
+.requiredAttention{
+  outline:3px solid #f59e0b!important;
+  outline-offset:2px;
+  box-shadow:0 0 0 5px rgba(245,158,11,.18)!important;
+  transition:box-shadow .2s ease,outline .2s ease;
+}

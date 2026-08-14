@@ -291,17 +291,110 @@ function getSelectedApprover(){
 }
 
 const standardFields=[['tag','TAG'],['equipamento','Equipamento'],['area','Área / Sistema'],['fabricante','Fabricante'],['modelo','Modelo'],['serie','Nº de série'],['om','OM / OS'],['problemas','Problemas identificados'],['causas','Possíveis causas'],['acoes','Ações executadas'],['obs','Observações finais']];const moduleDefaults={equipamentos:true,aprovacao:true,qrcode:true,whatsapp:true,email:true,camposPorTipo:true};const moduleLabels={equipamentos:'Cadastro de equipamentos',aprovacao:'Aprovação eletrônica',qrcode:'QR Code',whatsapp:'Compartilhamento WhatsApp',email:'Compartilhamento E-mail',camposPorTipo:'Campos por tipo de relatório'};
-function init(){if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
+
+const OWNER_LOGIN='proprietario';
+const OWNER_DEFAULT_PASSWORD='1234';
+
+function getOwnerPassword(){
+ try{
+  const raw=localStorage.getItem('ownerPassword');
+  return raw?JSON.parse(raw):OWNER_DEFAULT_PASSWORD;
+ }catch{
+  return localStorage.getItem('ownerPassword')||OWNER_DEFAULT_PASSWORD;
+ }
+}
+function ownerAccount(){
+ return {
+  login:OWNER_LOGIN,
+  senha:getOwnerPassword(),
+  nivel:'Proprietário',
+  nome:'Proprietário do Sistema',
+  matricula:'',
+  cargo:'Proprietário',
+  email:'',
+  isOwner:true
+ };
+}
+function isOwner(){
+ return !!currentUser?.isOwner || currentUser?.nivel==='Proprietário';
+}
+function isAdministrator(){
+ return isOwner() || currentUser?.nivel==='Administrador';
+}
+function isManagerOrAdmin(){
+ return isOwner() || ['Gestor','Administrador'].includes(currentUser?.nivel);
+}
+function authenticateUser(loginValue,passwordValue){
+ const login=String(loginValue||'').trim();
+ const senha=String(passwordValue||'');
+ if(login===OWNER_LOGIN && senha===getOwnerPassword())return ownerAccount();
+ return get('users',[]).find(x=>x.login===login&&x.senha===senha)||null;
+}
+
+function init(){if(!localStorage.getItem('ownerPassword'))localStorage.setItem('ownerPassword',JSON.stringify(OWNER_DEFAULT_PASSWORD));if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
  $('dataFim').value=todayISO();
- updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields()}function login(){const u=get('users',[]).find(x=>x.login===$('loginUser').value.trim()&&x.senha===$('loginPass').value);if(!u){alert('Usuário ou senha inválidos');return}currentUser=u;sessionStorage.setItem('currentUser',JSON.stringify(u));openApp()}function openApp(){$('loginScreen').classList.add('hidden');$('app').classList.remove('hidden');$('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;$('executorBadge').innerText=`Usuário: ${currentUser.nome}`;document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=currentUser.nivel==='Administrador'?'inline-block':'none');applyModules();if(executors.length===0)executors=[{login:currentUser.login,nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||'',assinatura:''}];renderExecutors();renderApproverOptions();applyWorkflowConfig();newReportNumber();showTab('dashboard')}function startNewReport(){
+ updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields()}function login(){
+ const user=authenticateUser($('loginUser').value,$('loginPass').value);
+ if(!user){
+  alert('Usuário ou senha inválidos');
+  $('loginPass')?.focus();
+  return;
+ }
+ currentUser=user;
+ sessionStorage.setItem('currentUser',JSON.stringify(user));
+ openApp();
+}function openApp(){
+ $('loginScreen').classList.add('hidden');
+ $('app').classList.remove('hidden');
+ $('userInfo').innerText=`${currentUser.nome} - ${currentUser.nivel}`;
+ $('executorBadge').innerText=`Usuário: ${currentUser.nome}`;
+ document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=isAdministrator()?'inline-block':'none');
+ applyModules();
+ if(executors.length===0){
+  executors=[{
+   login:currentUser.login,
+   nome:currentUser.nome,
+   matricula:currentUser.matricula||'',
+   cargo:currentUser.cargo||'',
+   assinatura:''
+  }];
+ }
+ renderExecutors();
+ renderApproverOptions();
+ applyWorkflowConfig();
+ newReportNumber();
+ showTab('dashboard');
+}function startNewReport(){
  currentEditingId=null;
  clearForm();
  if($('status')) $('status').value='Em elaboração';
  showTab('relatorio');
 }
 function logout(){sessionStorage.removeItem('currentUser');location.reload()}
-function changeMyPassword(){const nova=prompt('Digite a nova senha:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]),u=users.find(x=>x.login===currentUser.login);if(u){u.senha=nova;set('users',users);alert('Senha alterada com sucesso.')}}
-function resetUserPassword(i){if(currentUser.nivel!=='Administrador'){alert('Apenas administrador pode redefinir senha.');return}const nova=prompt('Nova senha para este usuário:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]);users[i].senha=nova;set('users',users);alert('Senha redefinida.')}
+function changeMyPassword(){
+ const nova=prompt('Digite a nova senha:');
+ if(!nova||nova.length<4){
+  alert('A senha deve ter pelo menos 4 caracteres.');
+  return;
+ }
+ if(isOwner()){
+  localStorage.setItem('ownerPassword',JSON.stringify(nova));
+  currentUser=ownerAccount();
+  sessionStorage.setItem('currentUser',JSON.stringify(currentUser));
+  alert('Senha do Proprietário alterada com sucesso.');
+  return;
+ }
+ let users=get('users',[]);
+ const u=users.find(x=>x.login===currentUser.login);
+ if(u){
+  u.senha=nova;
+  set('users',users);
+  currentUser={...currentUser,senha:nova};
+  sessionStorage.setItem('currentUser',JSON.stringify(currentUser));
+  alert('Senha alterada com sucesso.');
+ }
+}
+function resetUserPassword(i){if(!isAdministrator()){alert('Apenas administrador pode redefinir senha.');return}const nova=prompt('Nova senha para este usuário:');if(!nova||nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}let users=get('users',[]);users[i].senha=nova;set('users',users);alert('Senha redefinida.')}
 function changeMyPassword(){
  const nova=prompt('Digite a nova senha:');
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
@@ -309,7 +402,7 @@ function changeMyPassword(){
  if(u){u.senha=nova;set('users',users);alert('Senha alterada com sucesso.')}
 }
 function resetUserPassword(i){
- if(currentUser.nivel!=='Administrador'){alert('Apenas administrador pode redefinir senha.');return}
+ if(!isAdministrator()){alert('Apenas administrador pode redefinir senha.');return}
  const nova=prompt('Nova senha para este usuário:');
  if(!nova || nova.length<4){alert('A senha deve ter pelo menos 4 caracteres.');return}
  let users=get('users',[]);
@@ -337,8 +430,107 @@ function renderDashboard(){
  $('kpiOk').innerText=reps.filter(r=>r.status==='Aprovado').length;
  $('kpiEqp').innerText=eq.length;
 }function loadLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('empLogoPreview').src=r.result;$('empLogoPreview').dataset.logo=r.result};r.readAsDataURL(f)}function loadCompany(){const c=get('company',{});$('empNome').value=c.nome||'';$('empSetor').value=c.setor||'';if($('empEndereco'))$('empEndereco').value=c.endereco||'';$('empEmail').value=c.email||'';$('empGestor').value=c.gestor||'';$('empGestorCargo').value=c.gestorCargo||'';$('empLogoPreview').src=c.logo||'';$('empLogoPreview').dataset.logo=c.logo||''}function saveCompany(){set('company',{nome:$('empNome').value,setor:$('empSetor').value,endereco:$('empEndereco')?$('empEndereco').value:'',email:$('empEmail').value,gestor:$('empGestor').value,gestorCargo:$('empGestorCargo').value,logo:$('empLogoPreview').dataset.logo||''});alert('Empresa salva')}
-function renderRequiredFieldsConfig(){const req=get('requiredFields',[]);$('requiredFieldsArea').innerHTML=standardFields.map(([id,label])=>`<label class="moduleItem"><input type="checkbox" class="reqCheck" value="${id}" ${req.includes(id)?'checked':''}> ${label}</label>`).join('')}function saveRequiredFields(){set('requiredFields',[...document.querySelectorAll('.reqCheck:checked')].map(x=>x.value));alert('Campos obrigatórios salvos')}function validateRequired(){let missing=[],req=get('requiredFields',[]);req.forEach(id=>{if(!($(id)?.value||'').trim())missing.push((standardFields.find(x=>x[0]===id)||[])[1]||id)});get('customFields',[]).forEach(f=>{if(f.obrigatorio&&!($(f.id)?.value||'').trim())missing.push(f.nome)});if(executors.length===0||!executors.some(e=>e.nome))missing.push('Executantes');if(missing.length){alert('Preencha os campos obrigatórios: '+missing.join(', '));return false}return true}function addCustomField(){const nome=$('cfNome').value.trim();if(!nome){alert('Informe o nome do campo');return}let f=get('customFields',[]);f.push({id:'cf_'+Date.now(),nome,tipo:$('cfTipo').value,obrigatorio:$('cfObrigatorio').value==='sim'});set('customFields',f);$('cfNome').value='';renderCustomFieldsConfig();renderCustomFieldsForm()}function delCustomField(i){let f=get('customFields',[]);if(!confirm('Excluir campo?'))return;f.splice(i,1);set('customFields',f);renderCustomFieldsConfig();renderCustomFieldsForm()}function renderCustomFieldsConfig(){const f=get('customFields',[]);$('customFieldsBody').innerHTML=f.map((x,i)=>`<tr><td>${safe(x.nome)}</td><td>${x.tipo}</td><td>${x.obrigatorio?'Sim':'Não'}</td><td><button class="danger smallBtn" onclick="delCustomField(${i})">Excluir</button></td></tr>`).join('')}function renderCustomFieldsForm(){const f=get('customFields',[]);$('customFieldsArea').innerHTML=f.length?'<h3>Campos personalizados</h3>'+f.map(x=>x.tipo==='textarea'?`<label>${safe(x.nome)}${x.obrigatorio?' *':''}</label><textarea id="${x.id}"></textarea>`:`<label>${safe(x.nome)}${x.obrigatorio?' *':''}</label><input id="${x.id}" type="${x.tipo}">`).join(''):''}function renderTypeFields(){const m=getModules();if(!m.camposPorTipo){$('typeFieldsArea').innerHTML='';return}const tipo=$('tipo').value,map={'Inspeção':['Itens inspecionados','Conformidades','Não conformidades'],'Teste':['Parâmetros medidos','Resultado do teste','Conclusão'],'Preventiva':['Atividades preventivas realizadas'],'Corretiva':['Sintoma da falha','Correção aplicada'],'Preditiva':['Medições / evidências preditivas','Tendência observada'],'Emergencial':['Condição de emergência','Ação imediata']};$('typeFieldsArea').innerHTML=(map[tipo]||[]).map((n,i)=>`<label>${n}</label><textarea id="typeField${i}" data-type-label="${safe(n)}"></textarea>`).join('')}
-function addUser(){let u=get('users',[]);if(!$('uLogin').value||!$('uSenha').value||!$('uNome').value){alert('Preencha login, senha e nome');return}if(u.some(x=>x.login===$('uLogin').value.trim())){alert('Login já existe');return}u.push({login:$('uLogin').value.trim(),senha:$('uSenha').value,nivel:$('uNivel').value,nome:$('uNome').value,matricula:$('uMatricula').value,cargo:$('uCargo').value,email:$('uEmail').value});set('users',u);renderUsers();renderApproverOptions();['uLogin','uSenha','uNome','uMatricula','uCargo','uEmail'].forEach(id=>$(id).value='')}function renderUsers(){
+function renderRequiredFieldsConfig(){const req=get('requiredFields',[]);$('requiredFieldsArea').innerHTML=standardFields.map(([id,label])=>`<label class="moduleItem"><input type="checkbox" class="reqCheck" value="${id}" ${req.includes(id)?'checked':''}> ${label}</label>`).join('')}function saveRequiredFields(){set('requiredFields',[...document.querySelectorAll('.reqCheck:checked')].map(x=>x.value));alert('Campos obrigatórios salvos')}
+function focusRequiredField(id){
+ const el=$(id);
+ if(!el)return false;
+
+ // Se o campo estiver dentro de uma área/tab escondida, abre o relatório.
+ if(el.closest?.('.tab')?.classList.contains('hidden')){
+  showTab('relatorio');
+ }
+
+ setTimeout(()=>{
+  try{
+   el.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch{
+   el.scrollIntoView();
+  }
+  el.classList.add('requiredAttention');
+  try{el.focus({preventScroll:true})}catch{el.focus()}
+  setTimeout(()=>el.classList.remove('requiredAttention'),2200);
+ },120);
+ return true;
+}
+
+function focusExecutorsArea(){
+ const body=$('executorsBody');
+ const btn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Adicionar executante'));
+ const target=btn||body;
+ if(!target)return;
+ target.scrollIntoView({behavior:'smooth',block:'center'});
+ target.classList.add('requiredAttention');
+ if(btn)btn.focus();
+ setTimeout(()=>target.classList.remove('requiredAttention'),2200);
+}
+
+function validateRequired(){
+ const missing=[];
+ let firstMissingId=null;
+
+ const required=get('requiredFields',[]);
+ required.forEach(id=>{
+  const el=$(id);
+  if(!String(el?.value||'').trim()){
+   const label=(standardFields.find(x=>x[0]===id)||[])[1]||id;
+   missing.push(label);
+   if(!firstMissingId)firstMissingId=id;
+  }
+ });
+
+ get('customFields',[]).forEach(f=>{
+  if(f.obrigatorio&&!String($(f.id)?.value||'').trim()){
+   missing.push(f.nome);
+   if(!firstMissingId)firstMissingId=f.id;
+  }
+ });
+
+ const missingExecutors=executors.length===0||!executors.some(e=>String(e.nome||'').trim());
+ if(missingExecutors)missing.push('Executantes');
+
+ if(missing.length){
+  alert('Preencha os campos obrigatórios: '+missing.join(', '));
+
+  if(firstMissingId){
+   focusRequiredField(firstMissingId);
+  }else if(missingExecutors){
+   focusExecutorsArea();
+  }
+  return false;
+ }
+ return true;
+}function addCustomField(){const nome=$('cfNome').value.trim();if(!nome){alert('Informe o nome do campo');return}let f=get('customFields',[]);f.push({id:'cf_'+Date.now(),nome,tipo:$('cfTipo').value,obrigatorio:$('cfObrigatorio').value==='sim'});set('customFields',f);$('cfNome').value='';renderCustomFieldsConfig();renderCustomFieldsForm()}function delCustomField(i){let f=get('customFields',[]);if(!confirm('Excluir campo?'))return;f.splice(i,1);set('customFields',f);renderCustomFieldsConfig();renderCustomFieldsForm()}function renderCustomFieldsConfig(){const f=get('customFields',[]);$('customFieldsBody').innerHTML=f.map((x,i)=>`<tr><td>${safe(x.nome)}</td><td>${x.tipo}</td><td>${x.obrigatorio?'Sim':'Não'}</td><td><button class="danger smallBtn" onclick="delCustomField(${i})">Excluir</button></td></tr>`).join('')}function renderCustomFieldsForm(){const f=get('customFields',[]);$('customFieldsArea').innerHTML=f.length?'<h3>Campos personalizados</h3>'+f.map(x=>x.tipo==='textarea'?`<label>${safe(x.nome)}${x.obrigatorio?' *':''}</label><textarea id="${x.id}"></textarea>`:`<label>${safe(x.nome)}${x.obrigatorio?' *':''}</label><input id="${x.id}" type="${x.tipo}">`).join(''):''}function renderTypeFields(){const m=getModules();if(!m.camposPorTipo){$('typeFieldsArea').innerHTML='';return}const tipo=$('tipo').value,map={'Inspeção':['Itens inspecionados','Conformidades','Não conformidades'],'Teste':['Parâmetros medidos','Resultado do teste','Conclusão'],'Preventiva':['Atividades preventivas realizadas'],'Corretiva':['Sintoma da falha','Correção aplicada'],'Preditiva':['Medições / evidências preditivas','Tendência observada'],'Emergencial':['Condição de emergência','Ação imediata']};$('typeFieldsArea').innerHTML=(map[tipo]||[]).map((n,i)=>`<label>${n}</label><textarea id="typeField${i}" data-type-label="${safe(n)}"></textarea>`).join('')}
+function addUser(){
+ let u=get('users',[]);
+ const login=$('uLogin').value.trim();
+ if(!login||!$('uSenha').value||!$('uNome').value){
+  alert('Preencha login, senha e nome');
+  return;
+ }
+ if(login.toLowerCase()===OWNER_LOGIN){
+  alert('Este login é reservado ao Proprietário do sistema.');
+  $('uLogin').focus();
+  return;
+ }
+ if(u.some(x=>x.login===login)){
+  alert('Login já existe');
+  $('uLogin').focus();
+  return;
+ }
+ u.push({
+  login,
+  senha:$('uSenha').value,
+  nivel:$('uNivel').value,
+  nome:$('uNome').value,
+  matricula:$('uMatricula').value,
+  cargo:$('uCargo').value,
+  email:$('uEmail').value
+ });
+ set('users',u);
+ renderUsers();
+ renderApproverOptions();
+ ['uLogin','uSenha','uNome','uMatricula','uCargo','uEmail'].forEach(id=>$(id).value='');
+}function renderUsers(){
  const u=get('users',[]);
  $('usersBody').innerHTML=u.map((x,i)=>`<tr><td>${safe(x.login)}</td><td>${safe(x.nome)}</td><td>${safe(x.matricula||'')}</td><td>${safe(x.cargo||'')}</td><td>${safe(x.nivel)}</td><td><button class="light smallBtn" onclick="resetUserPassword(${i})">Nova senha</button> <button class="danger smallBtn" onclick="delUser(${i})">Excluir</button></td></tr>`).join('')
 }
@@ -797,6 +989,7 @@ function submitForApproval(){
  if(!validateSignaturesForApproval())return;
  if(w.approvalEnabled&&w.approverRequired&&!getSelectedApprover()){
   alert('Selecione o aprovador responsável.');
+  focusRequiredField('aprovador');
   return;
  }
  const st=w.approvalEnabled?'Aguardando aprovação':'Aprovado';
@@ -863,14 +1056,14 @@ function updateReportStatus(id,status,motivo){
  alert('Status atualizado: '+status);
  if(status==='Aprovado'||status==='Reprovado') showTab('historico');
 }function approveReport(id){
- if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode aprovar.');return}
+ if(!isManagerOrAdmin()){alert('Apenas gestor ou administrador pode aprovar.');return}
  const r=get('reports',[]).find(x=>x.id===id);
  if(currentUser.nivel==='Gestor'&&r?.aprovador?.login&&r.aprovador.login!==currentUser.login){
   alert('Este relatório foi destinado a outro aprovador.');
   return;
  }
  updateReportStatus(id,'Aprovado','');
-}function rejectReport(id){if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode reprovar.');return}const m=prompt('Informe o motivo da reprovação:');if(m===null||!m.trim())return;updateReportStatus(id,'Reprovado',m)}function correctionReport(id){if(!['Gestor','Administrador'].includes(currentUser.nivel)){alert('Apenas gestor ou administrador pode solicitar correção.');return}const m=prompt('Informe o que precisa ser corrigido:');if(m===null||!m.trim())return;updateReportStatus(id,'Correção solicitada',m)}
+}function rejectReport(id){if(!isManagerOrAdmin()){alert('Apenas gestor ou administrador pode reprovar.');return}const m=prompt('Informe o motivo da reprovação:');if(m===null||!m.trim())return;updateReportStatus(id,'Reprovado',m)}function correctionReport(id){if(!isManagerOrAdmin()){alert('Apenas gestor ou administrador pode solicitar correção.');return}const m=prompt('Informe o que precisa ser corrigido:');if(m===null||!m.trim())return;updateReportStatus(id,'Correção solicitada',m)}
 function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div class="pdfText">${safe(v)}</div>`:''}function reportHTML(r){
  const c=get('company',{}),m=getModules(),w=getWorkflowConfig();
  const sk=statusKey(r.status);
@@ -907,7 +1100,7 @@ function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div cl
   <div class="pdfHead">
     <div class="pdfLogo">${c.logo?`<img src="${c.logo}">`:''}</div>
     <div class="pdfTitle"><div>${safe(c.nome||'NOME DA EMPRESA')}</div><div>${safe(c.setor||'')}</div><div>RELATÓRIO DE MANUTENÇÃO</div>${c.endereco?`<div style="font-size:8pt;color:#000;margin-top:1mm">${safe(c.endereco)}</div>`:''}</div>
-    <div class="pdfMeta"><div><b>Nº:</b> ${safe(r.numero)}</div>${statusMeta}</div>
+    <div class="pdfMeta"><div><b>Relatório:</b><br>${safe(r.numero)}</div>${statusMeta}</div>
   </div>
   <div class="pdfSectionTitle">Dados gerais</div>
   <table class="pdfTable"><tr><td><b>Tipo:</b> ${safe(r.tipo)}</td>${priorityCell}<td><b>Data início:</b> ${brDate(r.data)}</td><td><b>Data fim:</b> ${brDate(r.dataFim||r.data)}</td></tr></table>
@@ -924,8 +1117,8 @@ function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div cl
     <div class="pdfEndBlock">
       ${qr}
       <div class="pdfFooter">
-        <div>Gerado por Sistema de Relatórios de Manutenção</div>
-        <div>Relatório: ${safe(r.numero)} | Versão: 8.6 | Emitido em: ${emitidoEm()}</div>
+        <div>Documento gerado pelo Sistema de Relatórios de Manutenção</div>
+        <div>Relatório: ${safe(r.numero)} | Versão: 8.8 | Emitido em: ${emitidoEm()}</div>
       </div>
     </div>
   </div>
