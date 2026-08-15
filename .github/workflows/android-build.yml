@@ -57,6 +57,6 @@ jobs:
       - name: Enviar APK como Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TechReport-APK-Teste
+          name: TechReport-APK-Teste2
           path: build-output/
           retention-days: 30
