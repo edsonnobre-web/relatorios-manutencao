@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -32,11 +32,17 @@ jobs:
       - name: Instalar Android SDK 36
         run: |
           yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+          sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
+
+      - name: Mostrar versões
+        run: |
+          java -version
+          gradle --version
+          sdkmanager --list_installed
 
       - name: Compilar APK de teste
         working-directory: android-twa
-        run: gradle :app:assembleDebug --stacktrace
+        run: gradle :app:assembleDebug --stacktrace --info
 
       - name: Localizar APK
         run: |
@@ -45,7 +51,7 @@ jobs:
 
       - name: Gerar impressão digital do APK
         run: |
-          $ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs build-output/TechReport-1.0.0-test.apk > build-output/fingerprint.txt
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --print-certs build-output/TechReport-1.0.0-test.apk > build-output/fingerprint.txt
           cat build-output/fingerprint.txt
 
       - name: Enviar APK como Artifact
