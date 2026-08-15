@@ -47,11 +47,11 @@ jobs:
       - name: Localizar APK
         run: |
           mkdir -p build-output
-          cp android-twa/app/build/outputs/apk/debug/app-debug.apk build-output/TechReport-1.0.0-test.apk
+          cp android-twa/app/build/outputs/apk/debug/app-debug.apk build-output/TechReport-1.0.0-test2.apk
 
       - name: Gerar impressão digital do APK
         run: |
-          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --print-certs build-output/TechReport-1.0.0-test.apk > build-output/fingerprint.txt
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --print-certs build-output/TechReport-1.0.0-test2.apk > build-output/fingerprint.txt
           cat build-output/fingerprint.txt
 
       - name: Enviar APK como Artifact
