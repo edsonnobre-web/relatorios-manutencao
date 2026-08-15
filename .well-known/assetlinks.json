@@ -1,1 +1,14 @@
-
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.techreport.mobile",
+      "sha256_cert_fingerprints": [
+        "D9:F7:57:3B:74:F5:87:82:07:B8:08:A0:1E:B1:E1:2C:AA:07:48:50:59:0C:A6:28:E8:77:43:E2:CA:FD:D7:EA"
+      ]
+    }
+  }
+]
