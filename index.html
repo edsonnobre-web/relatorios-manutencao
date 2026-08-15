@@ -3,11 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Relatórios de Manutenção - V8.8</title>
+<title>TechReport</title>
 <link rel="stylesheet" href="css/style.css">
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06111f">
+<meta name="application-name" content="TechReport">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TechReport">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
 </head>
 <body>
-<header><h1>Gerador de Relatórios de Manutenção — V8.8</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
+<header><h1>TechReport — V8.8</h1><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
 <div id="loginScreen" class="login card"><h2>Entrar</h2><p class="small">Informe seu usuário e senha para acessar o sistema.</p><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
 <div id="app" class="container hidden">
 <div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
@@ -180,6 +190,16 @@
   <div class="fieldHelpHead"><b id="fieldHelpTitle"></b><button id="fieldHelpClose" type="button" class="light">Fechar</button></div>
   <div id="fieldHelpText"></div>
 </div>
+
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .catch(err => console.warn('Service Worker:', err));
+  });
+}
+</script>
 
 </body>
 </html>
