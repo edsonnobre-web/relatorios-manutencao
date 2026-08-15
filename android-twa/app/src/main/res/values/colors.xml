@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#06111F</color>
-    <color name="navigationColor">#06111F</color>
-    <color name="backgroundColor">#06111F</color>
+<color name="colorPrimary">#06111F</color>
+<color name="colorPrimaryDark">#06111F</color>
+<color name="navigationColor">#06111F</color>
+<color name="navigationColorDark">#06111F</color>
+<color name="backgroundColor">#06111F</color>
 </resources>
