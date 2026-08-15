@@ -2,7 +2,7 @@
   "name": "TechReport",
   "short_name": "TechReport",
   "description": "Relatórios de manutenção profissionais",
-  "start_url": "./index.html",
+  "start_url": "./index.html?app=techreport-v2",
   "scope": "./",
   "display": "standalone",
   "background_color": "#07111d",
@@ -11,16 +11,29 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icons/techreport-icon-192-v2.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/techreport-icon-512-v2.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/techreport-maskable-192-v2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/techreport-maskable-512-v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "id": "./?app=techreport-v2"
 }
