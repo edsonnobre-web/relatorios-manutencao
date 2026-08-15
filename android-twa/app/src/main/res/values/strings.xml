@@ -1,13 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TechReport</string>
-    <string name="launch_url">https://edsonnobre-web.github.io/relatorios-manutencao/</string>
-    <string name="provider_authority">com.techreport.mobile.fileprovider</string>
-    <string name="asset_statements">[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "web",
-        "site": "https://edsonnobre-web.github.io"
-      }
-    }]</string>
+<string name="app_name">TechReport</string>
+<string name="launch_url">https://edsonnobre-web.github.io/relatorios-manutencao/</string>
+<string name="provider_authority">com.techreport.mobile.fileprovider</string>
+<string name="asset_statements">[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": { "namespace": "web", "site": "https://edsonnobre-web.github.io" } }]</string>
 </resources>
