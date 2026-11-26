@@ -1,0 +1,7 @@
+TECHREPORT V8.9 RC1 — versão candidata para testes
+Base: ZIP V8.8 RC1 fornecido pelo usuário.
+Publicação: substituir index.html, js/app.js, js/utils.js e service-worker.js; adicionar js/report-storage.js. Não apagar os demais arquivos do GitHub, especialmente .well-known, .nojekyll, ícones e estrutura Android. Manter o mesmo domínio e endereço.
+Migração: na primeira abertura, os relatórios antigos são copiados para IndexedDB e a chave antiga é removida somente após confirmação da transação. Não limpar dados do navegador. Não voltar à V8.8 sem planejar recuperação, pois ela não lê IndexedDB.
+Histórico: administrador/proprietário pode selecionar, excluir, restaurar, esvaziar lixeira e exportar/importar backup JSON dos relatórios. Importação preserva registros existentes com mesmo ID. Backup contém relatórios, fotos, assinaturas, lixeira e contadores; não contém cadastro/configurações gerais nem base SAP. Guardar em local seguro.
+Testar: migração, login, fotos reais, salvar/editar/reabrir, PDF, aprovação, exclusão, restauração, backup, modo offline. Não utilizar como única cópia de relatórios importantes até validar.
+Limitações: gravação manual de rascunho (autosave não implementado), imagens continuam em data URL, banco guarda snapshot dos relatórios, indicador estima tamanho dos dados e não espaço físico. Sem backend/licenciamento. Teste de sintaxe JS concluído; execução no navegador de teste bloqueada pela política do ambiente. Não validado em Android.
