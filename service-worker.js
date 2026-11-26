@@ -1,5 +1,5 @@
-const CACHE_NAME='techreport-v8-9-rc2';
-const APP_SHELL=['./','./index.html','./css/style.css','./js/utils.js','./js/report-storage.js','./js/pdf-styles.js','./js/pdf-layout.js','./js/help.js','./js/direct-pdf.js','./js/app.js','./js/connection.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE_NAME='techreport-v8-9-rc3';
+const APP_SHELL=['./index.html','./css/style.css?v=89rc3',...['utils','report-storage','pdf-styles','pdf-layout','help','direct-pdf','app','connection'].map(n=>'./js/'+n+'.js?v=89rc3'),'./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE_NAME);await c.addAll(APP_SHELL.map(u=>new Request(u,{cache:'reload'})));await self.skipWaiting()})()));
-self.addEventListener('activate',e=>e.waitUntil((async()=>{await self.clients.claim()})()));
-self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;e.respondWith((async()=>{const c=await caches.open(CACHE_NAME);if(r.mode==='navigate'){try{const res=await fetch(r);if(res.ok)return res}catch{}return await c.match('./index.html')||Response.error()}const hit=await c.match(r);if(hit)return hit;return fetch(r)})())});
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;e.respondWith((async()=>{const c=await caches.open(CACHE_NAME);if(r.mode==='navigate')return await c.match('./index.html')||fetch(r);return await c.match(r)||fetch(r)})())});
