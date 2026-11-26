@@ -1,8 +1,8 @@
 /* V8.2 — Funções utilitárias extraídas da V6.9 sem alteração lógica. */
 
-function get(k,d){return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}
+function get(k,d){if(k==='reports')return structuredClone(reportState.active);return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}
 
-function set(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function set(k,v){if(k==='reports')throw new Error('Use a gravação IndexedDB');localStorage.setItem(k,JSON.stringify(v))}
 
 function uid(){return'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}
 

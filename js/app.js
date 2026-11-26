@@ -187,7 +187,7 @@ function sequenceScopeKey(config,dateValue){
 }
 function inferExistingSequence(config,dateValue){
  const keyPrefix=sanitizePrefix(config.prefix).toLowerCase(),parts=reportDateParts(dateValue);let max=0;
- get('reports',[]).forEach(r=>{
+ [...get('reports',[]),...reportState.trash].forEach(r=>{
   const n=String(r.numero||''),rd=reportDateParts(r.data||dateValue);
   if(!n.toLowerCase().startsWith(keyPrefix))return;
   if(config.template.includes('{MM}')&&(rd.AAAA!==parts.AAAA||rd.MM!==parts.MM))return;
@@ -334,6 +334,7 @@ function authenticateUser(loginValue,passwordValue){
 function init(){if(!localStorage.getItem('ownerPassword'))localStorage.setItem('ownerPassword',JSON.stringify(OWNER_DEFAULT_PASSWORD));if(!localStorage.getItem('users'))set('users',[{login:'admin',senha:'1234',nivel:'Administrador',nome:'Administrador',matricula:'0000',cargo:'Administrador',email:''}]);if(!localStorage.getItem('company'))set('company',{nome:'NOME DA EMPRESA',setor:'OFICINA CENTRAL MECÂNICA / ELÉTRICA E INSTRUMENTAÇÃO',endereco:'',email:'',gestor:'Responsável Técnico',gestorCargo:'Cargo / Matrícula',logo:''});if(!localStorage.getItem('customFields'))set('customFields',[]);if(!localStorage.getItem('requiredFields'))set('requiredFields',['tag','equipamento','acoes']);if(!localStorage.getItem('modules'))set('modules',moduleDefaults);if(!localStorage.getItem('equipments'))set('equipments',[]);$('dataRelatorio').value=todayISO();if($('dataFim'))$('dataFim').value=todayISO();
  $('dataFim').value=todayISO();
  updatePeriodoInfo();loadCompany();renderModulesConfig();renderRequiredFieldsConfig();renderCustomFieldsConfig();renderCustomFieldsForm();renderUsers();renderEquipments();renderEquipmentSelect();renderDashboard();renderTypeFields()}function login(){
+ if(!reportDB || !storageReady)return alert('Aguarde a abertura do banco de relatórios.');
  const user=authenticateUser($('loginUser').value,$('loginPass').value);
  if(!user){
   alert('Usuário ou senha inválidos');
@@ -811,20 +812,22 @@ function addPhotos(e){
    reader.onload=()=>{
      const img=new Image();
      img.onload=()=>{
-       const max=1000;
+       const max=1200;
        let w=img.width, h=img.height;
        if(w>h && w>max){h=Math.round(h*max/w);w=max}
        if(h>=w && h>max){w=Math.round(w*max/h);h=max}
        const canvas=document.createElement('canvas');
        canvas.width=w;canvas.height=h;
        const ctx=canvas.getContext('2d');
-       ctx.drawImage(img,0,0,w,h);
-       const src=canvas.toDataURL('image/jpeg',0.65);
+       ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+       let src=canvas.toDataURL('image/jpeg',0.72);if(src.length>350000)src=canvas.toDataURL('image/jpeg',0.58);
        photos.push({src,comment:'',categoria:'Evidência'});
        renderPhotos();
      };
+     img.onerror=()=>alert('Não foi possível abrir a foto: '+f.name);
      img.src=reader.result;
    };
+   reader.onerror=()=>alert('Não foi possível ler a foto: '+f.name);
    reader.readAsDataURL(f);
  });
  e.target.value='';
@@ -913,7 +916,8 @@ function collectTypeFields(){return[...document.querySelectorAll('[id^=typeField
   approval:null
  }
 }
-function saveReportWithStatus(st){
+async function saveReportWithStatus(st){
+ if(reportBusy)return;reportBusy=true;
  try{
    if(st!=='Em elaboração' && !validateRequired())return;
    if(st==='Aguardando aprovação' && !validateSignaturesForApproval())return;
@@ -930,11 +934,11 @@ function saveReportWithStatus(st){
      }
      const idx=reps.findIndex(x=>x.id===currentEditingId);
      if(idx>=0) reps[idx]=r; else reps.push(r);
-     currentEditingId=null;
    }else{
      reps.push(r);
    }
-   set('reports',reps);
+   await persistReports(reps);
+   currentEditingId=null;
    alert(st==='Aguardando aprovação' ? 'Relatório enviado para aprovação: '+r.numero : 'Relatório salvo: '+r.numero);
    clearForm();
    renderHistory();
@@ -943,9 +947,10 @@ function saveReportWithStatus(st){
    showTab(st==='Aguardando aprovação' ? 'aprovacoes' : 'historico');
  }catch(e){
    alert('Erro ao salvar relatório: '+e.message);
- }
+ }finally{reportBusy=false}
 }
-function saveDraft(){
+async function saveDraft(){
+ if(reportBusy)return;reportBusy=true;
  try{
    if($('status')) $('status').value='Em elaboração';
    let reps=get('reports',[]);
@@ -956,11 +961,11 @@ function saveDraft(){
      r.id=currentEditingId;
      const idx=reps.findIndex(x=>x.id===currentEditingId);
      if(idx>=0) reps[idx]=r; else reps.push(r);
-     currentEditingId=null;
    }else{
      reps.push(r);
    }
-   set('reports',reps);
+   await persistReports(reps);
+   currentEditingId=null;
    alert('Rascunho salvo: '+r.numero);
    clearForm();
    renderHistory();
@@ -969,7 +974,7 @@ function saveDraft(){
    showTab('historico');
  }catch(e){
    alert('Erro ao salvar rascunho: '+e.message);
- }
+ }finally{reportBusy=false}
 }function validateSignaturesForApproval(){
  const lista=(executors||[]).filter(e=>e.nome||e.matricula||e.cargo);
  if(!lista.length){
@@ -1021,7 +1026,7 @@ function submitForApproval(){
   $('equipmentMatchInfo').classList.add('hidden');
  }
 }function setHistoryStatusFilter(st){if($('filterStatus'))$('filterStatus').value=st;renderHistory()}
-function renderHistory(){let reps=get('reports',[]).slice().reverse(),q=($('searchTerm')?.value||'').toLowerCase(),st=$('filterStatus')?.value||'',tp=$('filterType')?.value||'';reps=reps.filter(r=>(!st||r.status===st)&&(!tp||r.tipo===tp)&&(!q||JSON.stringify([r.numero,r.tag,r.serie,r.equipamento,(r.executors||[]).map(e=>e.nome)]).toLowerCase().includes(q)));$('historyBody').innerHTML=reps.map(r=>`<tr><td>${safe(r.numero)}</td><td>${brDate(r.data)}</td><td>${safe(r.tag)}</td><td>${safe(r.equipamento)}</td><td>${safe((r.executors||[]).map(e=>e.nome).join(', '))}</td><td>${statusBadge(r.status)}</td><td><button class="smallBtn" onclick="printSaved('${r.id}')">PDF</button> <button class="smallBtn light" onclick="loadReportForEdit('${r.id}')">Editar</button> <button class="smallBtn light" onclick="shareReportWhatsApp('${r.id}')">WhatsApp</button></td></tr>`).join('')}function renderApprovals(){
+function renderHistory(){renderReportTools();let reps=get('reports',[]).slice().reverse(),q=($('searchTerm')?.value||'').toLowerCase(),st=$('filterStatus')?.value||'',tp=$('filterType')?.value||'';reps=reps.filter(r=>(!st||r.status===st)&&(!tp||r.tipo===tp)&&(!q||JSON.stringify([r.numero,r.tag,r.serie,r.equipamento,(r.executors||[]).map(e=>e.nome)]).toLowerCase().includes(q)));$('historyBody').innerHTML=reps.map(r=>`<tr><td>${isAdministrator()?`<input type="checkbox" class="reportSelect" value="${safe(r.id)}" aria-label="Selecionar relatório"> `:''}${safe(r.numero)}</td><td>${brDate(r.data)}</td><td>${safe(r.tag)}</td><td>${safe(r.equipamento)}</td><td>${safe((r.executors||[]).map(e=>e.nome).join(', '))}</td><td>${statusBadge(r.status)}</td><td><button class="smallBtn" onclick="printSaved('${r.id}')">PDF</button> <button class="smallBtn light" onclick="loadReportForEdit('${r.id}')">Editar</button> <button class="smallBtn light" onclick="shareReportWhatsApp('${r.id}')">WhatsApp</button> ${isAdministrator()?`<button class="smallBtn danger" onclick="trashReports(['${r.id}'])">Excluir</button>`:''}</td></tr>`).join('')}function renderApprovals(){
  const w=getWorkflowConfig();
  if(!w.approvalEnabled){
   $('approvalList').innerHTML='<p>A aprovação eletrônica está desativada.</p>';
@@ -1044,17 +1049,19 @@ function renderHistory(){let reps=get('reports',[]).slice().reverse(),q=($('sear
     <button class="smallBtn warn" onclick="correctionReport('${r.id}')">Solicitar correção</button>
   </div><br>`).join(''):'<p>Nenhuma aprovação pendente para este usuário.</p>';
 }
-function updateReportStatus(id,status,motivo){
+async function updateReportStatus(id,status,motivo){
+ await reportAction(async()=>{
  let reps=get('reports',[]), r=reps.find(x=>x.id===id);
  if(!r)return;
  r.status=status;
  r.approval={status,motivo:motivo||'',gestor:{nome:currentUser.nome,matricula:currentUser.matricula||'',cargo:currentUser.cargo||''},data:new Date().toLocaleString('pt-BR')};
- set('reports',reps);
+ await persistReports(reps);
  renderApprovals();
  renderHistory();
  renderDashboard();
  alert('Status atualizado: '+status);
  if(status==='Aprovado'||status==='Reprovado') showTab('historico');
+ });
 }function approveReport(id){
  if(!isManagerOrAdmin()){alert('Apenas gestor ou administrador pode aprovar.');return}
  const r=get('reports',[]).find(x=>x.id===id);
@@ -1308,6 +1315,6 @@ function preparePrint(r){
  if(!r){alert('Relatório não encontrado');return}
  preparePrint(r);
 }function sendEmail(){const r=collectReport($('status').value),c=get('company',{});location.href=`mailto:${c.email||''}?subject=${encodeURIComponent('Relatório de Manutenção '+r.numero)}&body=${encodeURIComponent('Segue relatório de manutenção '+r.numero+'.\n\nEquipamento: '+r.tag+' - '+r.equipamento+'\nStatus: '+r.status+'\n\nSalve o PDF como: Relatório '+r.numero+'.pdf')}`}function shareWhatsApp(){const r=collectReport($('status').value);openWhatsApp(r)}function shareReportWhatsApp(id){const r=get('reports',[]).find(x=>x.id===id);if(r)openWhatsApp(r)}function openWhatsApp(r){const msg=`Relatório de Manutenção ${r.numero}%0AEquipamento: ${encodeURIComponent(r.tag+' - '+r.equipamento)}%0AStatus: ${encodeURIComponent(r.status)}%0A%0AObs.: gere/anexe o PDF "Relatório ${r.numero}.pdf".`;window.open('https://wa.me/?text='+msg,'_blank')}
-init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}
+(async()=>{try{await initReportStorage();storageReady=true;init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}$('loginScreen').style.pointerEvents='';}catch(e){alert('Não foi possível abrir o banco de relatórios. Não limpe os dados. '+e.message);}})();
 
 document.addEventListener('input',event=>{if(['cfgReportPrefix','cfgNumberTemplate','cfgSequenceDigits'].includes(event.target?.id))previewNumbering();});
