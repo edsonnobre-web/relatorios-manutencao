@@ -1043,7 +1043,7 @@ function renderHistory(){renderReportTools();let reps=get('reports',[]).slice().
     <br><span class="small"><b>Aprovador:</b> ${safe(r.aprovador?.nome||'Não definido')}</span>
     ${r.approval?.motivo?`<br><span class="small"><b>Motivo:</b> ${safe(r.approval.motivo)}</span>`:''}
     <br><br>
-    <button class="smallBtn" onclick="printSaved('${r.id}')">Visualizar PDF</button>
+    <button class="smallBtn" onclick="printSaved('${r.id}')">Visualizar PDF</button> <button class="smallBtn" onclick="saveStoredPDF('${r.id}')">Salvar PDF</button>
     <button class="smallBtn ok" onclick="approveReport('${r.id}')">Aprovar</button>
     <button class="smallBtn danger" onclick="rejectReport('${r.id}')">Reprovar</button>
     <button class="smallBtn warn" onclick="correctionReport('${r.id}')">Solicitar correção</button>
@@ -1125,7 +1125,7 @@ function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div cl
       ${qr}
       <div class="pdfFooter">
         <div>Documento gerado pelo Sistema de Relatórios de Manutenção</div>
-        <div>Relatório: ${safe(r.numero)} | Versão: 8.8 | Emitido em: ${emitidoEm()}</div>
+        <div>Relatório: ${safe(r.numero)} | Versão: 8.9 RC3 | Emitido em: ${emitidoEm()}</div>
       </div>
     </div>
   </div>
@@ -1158,6 +1158,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#111}
   top:0;
   z-index:99999;
   display:flex;
+  flex-wrap:wrap;
   gap:8px;
   justify-content:center;
   padding:10px;
@@ -1291,7 +1292,10 @@ body{font-family:Arial,Helvetica,sans-serif;color:#111}
 </head>
 <body>
 <div class="pdfViewerActions">
-  <button class="pdfViewerPrint" onclick="window.print()">Salvar / Imprimir PDF</button>
+  <button class="pdfViewerPrint" id="trSave">Salvar PDF</button>
+  <button class="pdfViewerClose" onclick="window.print()">Imprimir</button>
+  <button class="pdfViewerClose" id="trShare">Compartilhar</button>
+  <span id="trPdfMessage" role="status" style="font-size:12px"></span>
   <button class="pdfViewerClose" onclick="window.close()">Fechar</button>
 </div>
 ${report}
@@ -1301,6 +1305,9 @@ document.title=${JSON.stringify(title)};
 </body>
 </html>`);
  w.document.close();
+ const action=async(mode)=>{const msg=w.document.getElementById('trPdfMessage');const buttons=['trSave','trShare'].map(id=>w.document.getElementById(id));buttons.forEach(b=>b.disabled=true);msg.textContent='Preparando PDF…';try{await TRPDF.run(r,mode,w,msg)}catch(e){msg.textContent='Erro: '+e.message}finally{buttons.forEach(b=>b.disabled=false)}};
+ w.document.getElementById('trSave').onclick=()=>action('save');
+ w.document.getElementById('trShare').onclick=()=>action('share');
 }
 function preparePrint(r){
  document.title='Relatório '+r.numero;
@@ -1318,3 +1325,6 @@ function preparePrint(r){
 (async()=>{try{await initReportStorage();storageReady=true;init();const saved=sessionStorage.getItem('currentUser');if(saved){currentUser=JSON.parse(saved);openApp()}$('loginScreen').style.pointerEvents='';}catch(e){alert('Não foi possível abrir o banco de relatórios. Não limpe os dados. '+e.message);}})();
 
 document.addEventListener('input',event=>{if(['cfgReportPrefix','cfgNumberTemplate','cfgSequenceDigits'].includes(event.target?.id))previewNumbering();});
+
+function saveDirectPDF(){if(validateRequired())TRPDF.run(collectReport($("status").value));}
+function saveStoredPDF(id){const r=get("reports",[]).find(x=>x.id===id);if(r)TRPDF.run(r);}
