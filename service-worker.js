@@ -1,47 +1,5 @@
-const CACHE_NAME='techreport-v8-9-rc1';
-const APP_SHELL=[
-  './',
-  './index.html',
-  './css/style.css',
-  './js/utils.js',
-  './js/report-storage.js',
-  './js/pdf-styles.js',
-  './js/pdf-layout.js',
-  './js/help.js',
-  './js/app.js',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key.startsWith('techreport-') && key !== CACHE_NAME).map(key => caches.delete(key)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', event => {
-  if(event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-        return response;
-      })
-      .catch(() =>
-        caches.match(event.request).then(cached => cached || caches.match('./index.html'))
-      )
-  );
-});
+const CACHE_NAME='techreport-v8-9-rc2';
+const APP_SHELL=['./','./index.html','./css/style.css','./js/utils.js','./js/report-storage.js','./js/pdf-styles.js','./js/pdf-layout.js','./js/help.js','./js/direct-pdf.js','./js/app.js','./js/connection.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE_NAME);await c.addAll(APP_SHELL.map(u=>new Request(u,{cache:'reload'})));await self.skipWaiting()})()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{await self.clients.claim()})()));
+self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;e.respondWith((async()=>{const c=await caches.open(CACHE_NAME);if(r.mode==='navigate'){try{const res=await fetch(r);if(res.ok)return res}catch{}return await c.match('./index.html')||Response.error()}const hit=await c.match(r);if(hit)return hit;return fetch(r)})())});
