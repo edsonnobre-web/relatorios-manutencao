@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechReport</title>
-<link rel="stylesheet" href="css/style.css?v=89rc3">
+<link rel="stylesheet" href="css/style.css?v=89rc4">
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#06111f">
@@ -17,7 +17,7 @@
 
 </head>
 <body>
-<header><h1>TechReport — V8.9 RC3</h1><span id="trConnection" style="display:block;font-size:11px;white-space:normal">Verificando conexão…</span><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
+<header><h1>TechReport — V8.9 RC4</h1><span id="trConnection" style="display:block;font-size:11px;white-space:normal">Verificando conexão…</span><div class="topActions"><span id="userInfo" class="small"></span><button class="light" onclick="changeMyPassword()">Nova senha</button><button class="secondary" onclick="logout()">Sair</button></div></header>
 <div id="loginScreen" class="login card"><h2>Entrar</h2><p class="small">Informe seu usuário e senha para acessar o sistema.</p><label>Usuário</label><input id="loginUser"><label>Senha</label><input id="loginPass" type="password"><br><br><button onclick="login()">Entrar</button></div>
 <div id="app" class="container hidden">
 <div class="nav"><button onclick="showTab('dashboard')">Dashboard</button><button onclick="startNewReport()">Novo Relatório</button><button onclick="showTab('historico')">Histórico</button><button id="navEquip" onclick="showTab('equipamentos')">Equipamentos</button><button id="navAprov" onclick="showTab('aprovacoes')">Aprovações</button><button class="adminOnly" onclick="showTab('usuarios')">Usuários</button><button class="adminOnly" onclick="showTab('config')">Configurações</button></div>
@@ -125,12 +125,12 @@
 <section id="printArea" class="card hidden"></section></div>
 <div id="signatureModal" class="modal hidden"><div class="modalBox"><div class="modalHead"><b id="sigTitle">Assinatura</b><button class="light" onclick="closeSignatureModal()">Fechar</button></div><div class="modalBody"><canvas id="signatureCanvas"></canvas></div><div class="modalFoot"><button class="danger" onclick="clearModalSignature()">Limpar</button><button class="ok" onclick="saveModalSignature()">Salvar assinatura</button></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="js/report-storage.js?v=89rc3"></script>
-<script src="js/utils.js?v=89rc3"></script>
-<script src="js/pdf-styles.js?v=89rc3"></script>
-<script src="js/pdf-layout.js?v=89rc3"></script>
-<script src="js/help.js?v=89rc3"></script>
-<script src="js/direct-pdf.js?v=89rc3"></script><script src="js/app.js?v=89rc3"></script><script src="js/connection.js?v=89rc3"></script>
+<script src="js/report-storage.js?v=89rc4"></script>
+<script src="js/utils.js?v=89rc4"></script>
+<script src="js/pdf-styles.js?v=89rc4"></script>
+<script src="js/pdf-layout.js?v=89rc4"></script>
+<script src="js/help.js?v=89rc4"></script>
+<script src="js/direct-pdf.js?v=89rc4"></script><script src="js/app.js?v=89rc4"></script><script src="js/connection.js?v=89rc4"></script>
 
 <button id="helpFab" class="helpFab" type="button" title="Ajuda">?</button>
 <div id="helpOverlay" class="helpOverlay hidden">
