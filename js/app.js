@@ -1125,7 +1125,7 @@ function sec(t,v){return v?`<div class="pdfSectionTitle">${safe(t)}</div><div cl
       ${qr}
       <div class="pdfFooter">
         <div>Documento gerado pelo Sistema de Relatórios de Manutenção</div>
-        <div>Relatório: ${safe(r.numero)} | Versão: 8.9 RC3 | Emitido em: ${emitidoEm()}</div>
+        <div>Relatório: ${safe(r.numero)} | Versão: 8.9 RC4 | Emitido em: ${emitidoEm()}</div>
       </div>
     </div>
   </div>
